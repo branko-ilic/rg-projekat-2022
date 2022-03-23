@@ -234,7 +234,7 @@ int main() {
     glGenBuffers(1, &tableTopCubeVBO);
 
     glBindBuffer(GL_ARRAY_BUFFER, tableTopCubeVBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(tableTopCubeVertices), tableTopCubeVertices, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
     glBindVertexArray(tableTopCubeVAO);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
@@ -347,7 +347,7 @@ int main() {
         tableTopCubeShader.use();
 
         model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(9.0f, 1.1f, 10.0f));
+        model = glm::translate(model, glm::vec3(9.0f, 2.1f, 9.0f));
         model = glm::rotate(model, glm::radians(-20.0f), glm::vec3(0.0, 1.0f, 0.0f));
         model = glm::scale(model, glm::vec3(2.0f));
         tableTopCubeShader.setMat4("model", model);
@@ -358,9 +358,9 @@ int main() {
         glDrawArrays(GL_TRIANGLES, 0, 36);
 
         model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(9.0f, 1.6f, 6.0f));
+        model = glm::translate(model, glm::vec3(9.0f, 1.6f, 3.0f));
         model = glm::rotate(model, glm::radians(20.0f), glm::vec3(0.0, 1.0f, 0.0f));
-        model = glm::scale(model, glm::vec3(3.0f));
+        model = glm::scale(model, glm::vec3(1.5f));
         tableTopCubeShader.setMat4("model", model);
         tableTopCubeShader.setMat4("view", view);
         tableTopCubeShader.setMat4("projection", projection);
@@ -369,7 +369,7 @@ int main() {
         glDrawArrays(GL_TRIANGLES, 0, 36);
 
         model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(7.0f, 0.6f, 7.5f));
+        model = glm::translate(model, glm::vec3(5.5f, 1.1f, 6.0f));
         tableTopCubeShader.setMat4("model", model);
         tableTopCubeShader.setMat4("view", view);
         tableTopCubeShader.setMat4("projection", projection);

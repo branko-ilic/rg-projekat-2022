@@ -21,7 +21,7 @@ void processInput(GLFWwindow *window);
 void key_callback(GLFWwindow *window, int key, int scancode, int action, int mods);
 
 // settings
-const unsigned int SCR_WIDTH = 1720;
+const unsigned int SCR_WIDTH = 1920;
 const unsigned int SCR_HEIGHT = 1080;
 
 // camera
@@ -204,6 +204,20 @@ int main() {
     tableTopCubeShader.use();
     tableTopCubeShader.setInt("ourTexture", tableTopCubeTexture.getTextureNumber());
 
+//    Shader lightingShader("2.2.basic_lighting.vs", "2.2.basic_lighting.fs");
+    Shader lightCubeShader("resources/shaders/lightcube.vs", "resources/shaders/lightcube.fs");
+
+    unsigned int lightCubeVAO;
+    glGenVertexArrays(1, &lightCubeVAO);
+    glBindVertexArray(lightCubeVAO);
+
+    glBindBuffer(GL_ARRAY_BUFFER, cubeVBO);
+    // note that we update the lamp's position attribute's stride to reflect the updated buffer data
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(0);
+
+
+
     while (!glfwWindowShouldClose(window)) {
         float currentFrame = glfwGetTime();
         deltaTime = currentFrame - lastFrame;
@@ -332,17 +346,33 @@ int main() {
         glBindVertexArray(tableTopCubeVAO);
         glDrawArrays(GL_TRIANGLES, 0, 36);
 
+        // Lighting cube defining
+
+        lightCubeShader.use();
+        lightCubeShader.setMat4("projection", projection);
+        lightCubeShader.setMat4("view", view);
+        model = glm::mat4(1.0f);
+        model = glm::translate(model, glm::vec3(0.0f, 16.0f, 0.0f));
+        model = glm::scale(model, glm::vec3(1.5f)); // a smaller cube
+        lightCubeShader.setMat4("model", model);
+
+        glBindVertexArray(lightCubeVAO);
+        glDrawArrays(GL_TRIANGLES, 0, 36);
+
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
 
     glDeleteVertexArrays(1, &cubeVAO);
     glDeleteVertexArrays(1, &pyramidVAO);
+
     glDeleteBuffers(1, &cubeVBO);
     glDeleteBuffers(1, &pyramidVBO);
     glDeleteBuffers(1, &pyramidEBO);
+
     glDeleteVertexArrays(1, &tableTopCubeVAO);
     glDeleteBuffers(1, &tableTopCubeVBO);
+    glDeleteVertexArrays(1, &lightCubeVAO);
 
     glfwTerminate();
     return 0;

@@ -172,7 +172,7 @@ int main() {
     glEnableVertexAttribArray(2);
 
     Texture2D woodTexture("resources/textures/table.jpg", 0);
-    Texture2D pyramidTexture("resources/textures/wall.jpg", 1);
+    Texture2D pyramidTexture("resources/textures/bricks2.jpg", 1);
 
     glEnable(GL_DEPTH_TEST);
 

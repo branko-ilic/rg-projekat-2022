@@ -172,7 +172,7 @@ int main() {
     glEnableVertexAttribArray(2);
 
     Texture2D woodTexture("resources/textures/table.jpg", 0);
-    Texture2D pyramidTexture("resources/textures/wall.jpg", 1);
+    Texture2D pyramidTexture("resources/textures/pyramid2.jpg", 1);
 
     glEnable(GL_DEPTH_TEST);
 
@@ -181,6 +181,73 @@ int main() {
 
     pyramidShader.use();
     pyramidShader.setInt("pyramidTexture", pyramidTexture.getTextureNumber());
+
+    Shader tableTopCubeShader("resources/shaders/cube.vs", "resources/shaders/cube.fs");
+
+    float tableTopCubeVertices[] = {
+            // positions          // normals              // texture coords
+            -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f,  0.0f,
+            0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f,  0.0f,
+            0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f,  1.0f,
+            0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f,  1.0f,
+            -0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f,  1.0f,
+            -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f,  0.0f,
+
+            -0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  0.0f,  0.0f,
+            0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  1.0f,  0.0f,
+            0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  1.0f,  1.0f,
+            0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  1.0f,  1.0f,
+            -0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  0.0f,  1.0f,
+            -0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  0.0f,  0.0f,
+
+            -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  1.0f,  0.0f,
+            -0.5f,  0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  1.0f,  1.0f,
+            -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  0.0f,  1.0f,
+            -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  0.0f,  1.0f,
+            -0.5f, -0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  0.0f,  0.0f,
+            -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  1.0f,  0.0f,
+
+            0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f,  0.0f,
+            0.5f,  0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  1.0f,  1.0f,
+            0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  0.0f,  1.0f,
+            0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  0.0f,  1.0f,
+            0.5f, -0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  0.0f,  0.0f,
+            0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f,  0.0f,
+
+            -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  0.0f,  1.0f,
+            0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  1.0f,  1.0f,
+            0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  1.0f,  0.0f,
+            0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  1.0f,  0.0f,
+            -0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  0.0f,  0.0f,
+            -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  0.0f,  1.0f,
+
+            -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f,  1.0f,
+            0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  1.0f,  1.0f,
+            0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  1.0f,  0.0f,
+            0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  1.0f,  0.0f,
+            -0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  0.0f,  0.0f,
+            -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f,  1.0f
+    };
+
+    unsigned int tableTopCubeVBO, tableTopCubeVAO;
+    glGenVertexArrays(1, &tableTopCubeVAO);
+    glGenBuffers(1, &tableTopCubeVBO);
+
+    glBindBuffer(GL_ARRAY_BUFFER, tableTopCubeVBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(tableTopCubeVertices), tableTopCubeVertices, GL_STATIC_DRAW);
+
+    glBindVertexArray(tableTopCubeVAO);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
+    glEnableVertexAttribArray(2);
+
+    Texture2D tableTopCubeTexture("resources/textures/red_brick.jpg", 2);
+
+    tableTopCubeShader.use();
+    tableTopCubeShader.setInt("ourTexture", tableTopCubeTexture.getTextureNumber());
 
     while (!glfwWindowShouldClose(window)) {
         float currentFrame = glfwGetTime();
@@ -194,6 +261,7 @@ int main() {
 
         woodTexture.bind();
         pyramidTexture.bind();
+        tableTopCubeTexture.bind();
 
         glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
         glm::mat4 view = camera.GetViewMatrix();
@@ -274,6 +342,41 @@ int main() {
         glBindVertexArray(pyramidVAO);
         glDrawElements( GL_TRIANGLES, 18, GL_UNSIGNED_INT, 0);
 
+        // Table top cubes
+
+        tableTopCubeShader.use();
+
+        model = glm::mat4(1.0f);
+        model = glm::translate(model, glm::vec3(9.0f, 1.1f, 10.0f));
+        model = glm::rotate(model, glm::radians(-20.0f), glm::vec3(0.0, 1.0f, 0.0f));
+        model = glm::scale(model, glm::vec3(2.0f));
+        tableTopCubeShader.setMat4("model", model);
+        tableTopCubeShader.setMat4("view", view);
+        tableTopCubeShader.setMat4("projection", projection);
+
+        glBindVertexArray(tableTopCubeVAO);
+        glDrawArrays(GL_TRIANGLES, 0, 36);
+
+        model = glm::mat4(1.0f);
+        model = glm::translate(model, glm::vec3(9.0f, 1.6f, 6.0f));
+        model = glm::rotate(model, glm::radians(20.0f), glm::vec3(0.0, 1.0f, 0.0f));
+        model = glm::scale(model, glm::vec3(3.0f));
+        tableTopCubeShader.setMat4("model", model);
+        tableTopCubeShader.setMat4("view", view);
+        tableTopCubeShader.setMat4("projection", projection);
+
+        glBindVertexArray(tableTopCubeVAO);
+        glDrawArrays(GL_TRIANGLES, 0, 36);
+
+        model = glm::mat4(1.0f);
+        model = glm::translate(model, glm::vec3(7.0f, 0.6f, 7.5f));
+        tableTopCubeShader.setMat4("model", model);
+        tableTopCubeShader.setMat4("view", view);
+        tableTopCubeShader.setMat4("projection", projection);
+
+        glBindVertexArray(tableTopCubeVAO);
+        glDrawArrays(GL_TRIANGLES, 0, 36);
+
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
@@ -283,7 +386,8 @@ int main() {
     glDeleteBuffers(1, &cubeVBO);
     glDeleteBuffers(1, &pyramidVBO);
     glDeleteBuffers(1, &pyramidEBO);
-
+    glDeleteVertexArrays(1, &tableTopCubeVAO);
+    glDeleteBuffers(1, &tableTopCubeVBO);
 
     glfwTerminate();
     return 0;
@@ -292,7 +396,7 @@ int main() {
 // process all input: query GLFW whether relevant keys are pressed/released this frame and react accordingly
 // ---------------------------------------------------------------------------------------------------------
 void processInput(GLFWwindow *window) {
-    if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
+    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
 
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)

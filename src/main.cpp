@@ -21,7 +21,7 @@ void processInput(GLFWwindow *window);
 void key_callback(GLFWwindow *window, int key, int scancode, int action, int mods);
 
 // settings
-const unsigned int SCR_WIDTH = 1720;
+const unsigned int SCR_WIDTH = 1920;
 const unsigned int SCR_HEIGHT = 1080;
 
 // camera
@@ -182,6 +182,42 @@ int main() {
     pyramidShader.use();
     pyramidShader.setInt("pyramidTexture", pyramidTexture.getTextureNumber());
 
+    Shader tableTopCubeShader("resources/shaders/cube.vs", "resources/shaders/cube.fs");
+
+    unsigned int tableTopCubeVBO, tableTopCubeVAO;
+    glGenVertexArrays(1, &tableTopCubeVAO);
+    glGenBuffers(1, &tableTopCubeVBO);
+
+    glBindBuffer(GL_ARRAY_BUFFER, tableTopCubeVBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+    glBindVertexArray(tableTopCubeVAO);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
+    glEnableVertexAttribArray(2);
+
+    Texture2D tableTopCubeTexture("resources/textures/red_brick.jpg", 2);
+
+    tableTopCubeShader.use();
+    tableTopCubeShader.setInt("ourTexture", tableTopCubeTexture.getTextureNumber());
+
+//    Shader lightingShader("2.2.basic_lighting.vs", "2.2.basic_lighting.fs");
+    Shader lightCubeShader("resources/shaders/lightcube.vs", "resources/shaders/lightcube.fs");
+
+    unsigned int lightCubeVAO;
+    glGenVertexArrays(1, &lightCubeVAO);
+    glBindVertexArray(lightCubeVAO);
+
+    glBindBuffer(GL_ARRAY_BUFFER, cubeVBO);
+    // note that we update the lamp's position attribute's stride to reflect the updated buffer data
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(0);
+
+
+
     while (!glfwWindowShouldClose(window)) {
         float currentFrame = glfwGetTime();
         deltaTime = currentFrame - lastFrame;
@@ -194,6 +230,7 @@ int main() {
 
         woodTexture.bind();
         pyramidTexture.bind();
+        tableTopCubeTexture.bind();
 
         glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
         glm::mat4 view = camera.GetViewMatrix();
@@ -274,16 +311,68 @@ int main() {
         glBindVertexArray(pyramidVAO);
         glDrawElements( GL_TRIANGLES, 18, GL_UNSIGNED_INT, 0);
 
+        // Table top cubes
+
+        tableTopCubeShader.use();
+
+        model = glm::mat4(1.0f);
+        model = glm::translate(model, glm::vec3(9.0f, 2.1f, 9.0f));
+        model = glm::rotate(model, glm::radians(-20.0f), glm::vec3(0.0, 1.0f, 0.0f));
+        model = glm::scale(model, glm::vec3(2.0f));
+        tableTopCubeShader.setMat4("model", model);
+        tableTopCubeShader.setMat4("view", view);
+        tableTopCubeShader.setMat4("projection", projection);
+
+        glBindVertexArray(tableTopCubeVAO);
+        glDrawArrays(GL_TRIANGLES, 0, 36);
+
+        model = glm::mat4(1.0f);
+        model = glm::translate(model, glm::vec3(9.0f, 1.6f, 3.0f));
+        model = glm::rotate(model, glm::radians(20.0f), glm::vec3(0.0, 1.0f, 0.0f));
+        model = glm::scale(model, glm::vec3(1.5f));
+        tableTopCubeShader.setMat4("model", model);
+        tableTopCubeShader.setMat4("view", view);
+        tableTopCubeShader.setMat4("projection", projection);
+
+        glBindVertexArray(tableTopCubeVAO);
+        glDrawArrays(GL_TRIANGLES, 0, 36);
+
+        model = glm::mat4(1.0f);
+        model = glm::translate(model, glm::vec3(5.5f, 1.1f, 6.0f));
+        tableTopCubeShader.setMat4("model", model);
+        tableTopCubeShader.setMat4("view", view);
+        tableTopCubeShader.setMat4("projection", projection);
+
+        glBindVertexArray(tableTopCubeVAO);
+        glDrawArrays(GL_TRIANGLES, 0, 36);
+
+        // Lighting cube defining
+
+        lightCubeShader.use();
+        lightCubeShader.setMat4("projection", projection);
+        lightCubeShader.setMat4("view", view);
+        model = glm::mat4(1.0f);
+        model = glm::translate(model, glm::vec3(0.0f, 16.0f, 0.0f));
+        model = glm::scale(model, glm::vec3(1.5f)); // a smaller cube
+        lightCubeShader.setMat4("model", model);
+
+        glBindVertexArray(lightCubeVAO);
+        glDrawArrays(GL_TRIANGLES, 0, 36);
+
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
 
     glDeleteVertexArrays(1, &cubeVAO);
     glDeleteVertexArrays(1, &pyramidVAO);
+
     glDeleteBuffers(1, &cubeVBO);
     glDeleteBuffers(1, &pyramidVBO);
     glDeleteBuffers(1, &pyramidEBO);
 
+    glDeleteVertexArrays(1, &tableTopCubeVAO);
+    glDeleteBuffers(1, &tableTopCubeVBO);
+    glDeleteVertexArrays(1, &lightCubeVAO);
 
     glfwTerminate();
     return 0;
@@ -292,7 +381,7 @@ int main() {
 // process all input: query GLFW whether relevant keys are pressed/released this frame and react accordingly
 // ---------------------------------------------------------------------------------------------------------
 void processInput(GLFWwindow *window) {
-    if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
+    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
 
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)

@@ -204,8 +204,6 @@ int main() {
     glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
     glEnableVertexAttribArray(2);
 
-    // ovo sa grafitima pitaj radovana ujutru malo glupa ideja ali daje i spec i diff svetlo
-
     Texture2D tableTopCubeTexture("resources/textures/red_brick.jpg", 2);
     Texture2D tableTopCubeTexture1("resources/textures/graffiti.jpeg", 3);
 
@@ -227,7 +225,7 @@ int main() {
     tableTopCubeShader.setInt("material.specular", tableTopCubeTexture1.getTextureNumber());
 
     while (!glfwWindowShouldClose(window)) {
-        float currentFrame = glfwGetTime();
+        float currentFrame = static_cast<float>(glfwGetTime());
         deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
 
@@ -248,15 +246,17 @@ int main() {
         // Floor setup.
         floorShader.use();
         floorShader.setVec3("light.position", lightPos);
-        floorShader.setVec3("viewPos", camera.Position);
+        floorShader.setVec3("viewPos", lightPos);
 
         // light properties
         floorShader.setVec3("light.ambient", 0.2f, 0.2f, 0.2f);
         floorShader.setVec3("light.diffuse", 0.5f, 0.5f, 0.5f);
-        floorShader.setVec3("light.specular", 1.0f, 1.0f, 1.0f);
+        floorShader.setVec3("light.specular", 1.2f, 1.2f, 1.2f);
+        floorShader.setFloat("light.constant", 1.0f);
+        floorShader.setFloat("light.linear", 0.007f);
+        floorShader.setFloat("light.quadratic", 0.0002f);
 
         // material properties
-        floorShader.setVec3("material.specular", 0.5f, 0.5f, 0.5f);
         floorShader.setFloat("material.shininess", 64.0f);
 
         floorShader.setMat4("projection", projection);
@@ -336,12 +336,16 @@ int main() {
 
         tableTopCubeShader.use();
         tableTopCubeShader.setVec3("light.position", lightPos);
-        tableTopCubeShader.setVec3("viewPos", camera.Position);
+        tableTopCubeShader.setVec3("viewPos", lightPos);
 
         // light properties
         tableTopCubeShader.setVec3("light.ambient", 0.2f, 0.2f, 0.2f);
         tableTopCubeShader.setVec3("light.diffuse", 0.5f, 0.5f, 0.5f);
-        tableTopCubeShader.setVec3("light.specular", 1.0f, 1.0f, 1.0f);
+        tableTopCubeShader.setVec3("light.specular", 1.2f, 1.2f, 1.2f);
+        tableTopCubeShader.setFloat("light.constant", 1.0f);
+        tableTopCubeShader.setFloat("light.linear", 0.007f);
+        tableTopCubeShader.setFloat("light.quadratic", 0.0002f);
+
 
         // material properties
         tableTopCubeShader.setVec3("material.specular", 0.5f, 0.5f, 0.5f);

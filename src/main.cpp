@@ -62,7 +62,7 @@ int main() {
     glfwSetScrollCallback(window, scroll_callback);
     glfwSetKeyCallback(window, key_callback);
     // tell GLFW to capture our mouse
-    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 
     // glad: load all OpenGL function pointers
     // ---------------------------------------
@@ -191,6 +191,7 @@ int main() {
 
     Texture2D woodTexture("resources/textures/table.jpg", 0);
     Texture2D pyramidTexture("resources/textures/bricks2.jpg", 1);
+    Texture2D pyramidSpecular("resources/textures/brick2_specular.jpg", 3);
     Texture2D tableTopCubeTexture("resources/textures/red_brick.jpg", 2);
 
     glEnable(GL_DEPTH_TEST);
@@ -199,10 +200,11 @@ int main() {
     floorShader.setInt("material.diffuse", woodTexture.getTextureNumber());
 
     pyramidShader.use();
-    pyramidShader.setInt("pyramidTexture", pyramidTexture.getTextureNumber());
+    pyramidShader.setInt("pyramid.diffuse", pyramidTexture.getTextureNumber());
+//    pyramidShader.setInt("pyramid.specular", pyramidSpecular.getTextureNumber());
 
-    tableTopCubeShader.use();
-    tableTopCubeShader.setInt("topCubeTexture", tableTopCubeTexture.getTextureNumber());
+//    tableTopCubeShader.use();
+//    tableTopCubeShader.setInt("topCubeTexture", tableTopCubeTexture.getTextureNumber());
 
 //    Shader lightingShader("2.2.basic_lighting.vs", "2.2.basic_lighting.fs");
     Shader lightCubeShader("resources/shaders/lightcube.vs", "resources/shaders/lightcube.fs");
@@ -231,6 +233,7 @@ int main() {
         woodTexture.bind();
         pyramidTexture.bind();
         tableTopCubeTexture.bind();
+//        pyramidSpecular.bind();
 
         glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
         glm::mat4 view = camera.GetViewMatrix();
@@ -238,9 +241,11 @@ int main() {
 
         // Floor setup.
         floorShader.use();
+        auto time = static_cast<float>(glfwGetTime());
+        lightPosition.x = 2 * sin(time) + 1;
+        lightPosition.z = 2 * cos(time) + 1;
         floorShader.setVec3("light.position", lightPosition);
-        floorShader.setVec3("viewPos", camera.Position);
-//        floorShader.setVec3("viewPos", glm::vec3(0.0f));
+        floorShader.setVec3("viewPos", lightPosition);
 
         // Light properties.
         floorShader.setVec3("light.ambient", 0.2f, 0.2f, 0.2f);
@@ -249,7 +254,7 @@ int main() {
 
         // Material properties.
         floorShader.setVec3("material.specular", 0.5f, 0.5f, 0.5f);
-        floorShader.setFloat("material.shininess", 64.0f);
+        floorShader.setFloat("material.shininess", 32.0f);
 
         floorShader.setMat4("projection", projection);
         floorShader.setMat4("view", view);
@@ -296,6 +301,18 @@ int main() {
 
         // Pyramid setup.
         pyramidShader.use();
+
+        //      Light setup.
+        pyramidShader.setVec3("light.position", lightPosition);
+        pyramidShader.setVec3("viewPosition", camera.Position);
+
+        pyramidShader.setVec3("light.ambient", 0.1f, 0.1f, 0.1f);
+        pyramidShader.setVec3("light.diffuse", 0.5f, 0.5f, 0.5f);
+        pyramidShader.setVec3("light.specular", 1.0f, 1.0f, 1.0f);
+
+        pyramidShader.setVec3("pyramid.specular", glm::vec3(0.0f));
+        pyramidShader.setFloat("pyramid.shininess", 4.0f);
+
         model = glm::mat4(1.0f);
         model = glm::translate(model, glm::vec3(-9, 0.1f, 8.5f));
         model = glm::rotate(model, glm::radians(20.0f), glm::vec3(0.0f, 1.0, 0.0f));
@@ -324,6 +341,7 @@ int main() {
         glBindVertexArray(pyramidVAO);
         glDrawElements( GL_TRIANGLES, 18, GL_UNSIGNED_INT, 0);
 
+        /*
         // Table top cubes
 
         tableTopCubeShader.use();
@@ -358,6 +376,7 @@ int main() {
 
         glBindVertexArray(tableTopCubeVAO);
         glDrawArrays(GL_TRIANGLES, 0, 36);
+         */
 
         // Lighting cube defining
 

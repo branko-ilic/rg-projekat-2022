@@ -37,7 +37,7 @@ bool firstMouse = true;
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 
-glm::vec3 lightPosition = glm::vec3(0.0f, 16.0f, 0.0f);
+glm::vec3 lightPosition = glm::vec3(0.0f, 10.0f, 0.0f);
 
 int main() {
     // glfw: initialize and configure
@@ -62,7 +62,7 @@ int main() {
     glfwSetScrollCallback(window, scroll_callback);
     glfwSetKeyCallback(window, key_callback);
     // tell GLFW to capture our mouse
-    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
     // glad: load all OpenGL function pointers
     // ---------------------------------------
@@ -191,7 +191,7 @@ int main() {
 
     Texture2D woodTexture("resources/textures/table.jpg", 0);
     Texture2D pyramidTexture("resources/textures/bricks2.jpg", 1);
-    Texture2D pyramidSpecular("resources/textures/brick2_specular.jpg", 3);
+//    Texture2D pyramidSpecular("resources/textures/brick2_specular.jpg", 3);
     Texture2D tableTopCubeTexture("resources/textures/red_brick.jpg", 2);
 
     glEnable(GL_DEPTH_TEST);
@@ -242,8 +242,8 @@ int main() {
         // Floor setup.
         floorShader.use();
         auto time = static_cast<float>(glfwGetTime());
-        lightPosition.x = 2 * sin(time) + 1;
-        lightPosition.z = 2 * cos(time) + 1;
+        lightPosition.x = 5 * sin(time) + 1;
+        lightPosition.z = 5 * cos(time) + 1;
         floorShader.setVec3("light.position", lightPosition);
         floorShader.setVec3("viewPos", lightPosition);
 
@@ -304,11 +304,15 @@ int main() {
 
         //      Light setup.
         pyramidShader.setVec3("light.position", lightPosition);
-        pyramidShader.setVec3("viewPosition", camera.Position);
+        pyramidShader.setVec3("viewPosition", lightPosition);
 
-        pyramidShader.setVec3("light.ambient", 0.1f, 0.1f, 0.1f);
+        pyramidShader.setVec3("light.ambient", 0.1f, 0.1f, 0.05f);
         pyramidShader.setVec3("light.diffuse", 0.5f, 0.5f, 0.5f);
-        pyramidShader.setVec3("light.specular", 1.0f, 1.0f, 1.0f);
+        pyramidShader.setVec3("light.specular", 1.2f, 1.2f, 1.2f);
+
+        pyramidShader.setFloat("light.constant", 1.0f);
+        pyramidShader.setFloat("light.linear", 0.00014f);
+        pyramidShader.setFloat("light.quadratic", 0.000007f);
 
         pyramidShader.setVec3("pyramid.specular", glm::vec3(0.0f));
         pyramidShader.setFloat("pyramid.shininess", 4.0f);

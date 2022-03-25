@@ -18,6 +18,10 @@ struct Light {
     vec3 specular;
 
     vec3 position;
+
+    float constant;
+    float linear;
+    float quadratic;
 };
 
 uniform vec3 viewPosition;
@@ -38,6 +42,13 @@ void main()
     float spec = pow(max(dot(viewDirection, reflectDir), 0.0), pyramid.shininess);
     vec3 specular = light.specular * spec * pyramid.specular;
 //     vec3 specular = light.specular * spec * texture(pyramid.specular, TexCoord).rgb;
+
+    float distance = length(light.position - FragPos);
+    float attenuation = 1.0 / (light.constant + light.linear * distance + light.quadratic * (distance * distance));
+
+    ambient  *= attenuation;
+    diffuse  *= attenuation;
+    specular *= attenuation;
 
     vec3 result = ambient + diffuse + specular;
 

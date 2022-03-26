@@ -38,7 +38,7 @@ float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 
 // lighting
-glm::vec3 lightPos(0.0f, 16.0f, 0.0f);
+glm::vec3 lightPos = glm::vec3(0.0f, 10.0f, 0.0f);
 
 int main() {
     // glfw: initialize and configure
@@ -145,12 +145,12 @@ int main() {
             };
 
     unsigned int pyramidIndices[] = {
-            0, 1, 3,	//ABD
-            1, 2, 3,	//BDC
-            0, 1, 4,	//ABE
-            0, 3, 4,	//ADE
-            2, 3, 4,	//CDE
-            1, 2, 4,	//BCE
+            0, 1, 3,
+            1, 2, 3,
+            0, 1, 4,
+            0, 3, 4,
+            2, 3, 4,
+            1, 2, 4
     };
 
     unsigned int pyramidVAO, pyramidVBO, pyramidEBO;
@@ -183,7 +183,7 @@ int main() {
     floorShader.setInt("material.specular", woodTexture.getTextureNumber());
 
     pyramidShader.use();
-    pyramidShader.setInt("pyramidTexture", pyramidTexture.getTextureNumber());
+    pyramidShader.setInt("pyramid.diffuse", pyramidTexture.getTextureNumber());
 
     // tabletop cube definitions and light
 
@@ -238,6 +238,7 @@ int main() {
         pyramidTexture.bind();
         tableTopCubeTexture.bind();
         tableTopCubeTexture1.bind();
+
 
         glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
         glm::mat4 view = camera.GetViewMatrix();
@@ -304,6 +305,22 @@ int main() {
 
         // Pyramid setup.
         pyramidShader.use();
+
+        //      Light setup.
+        pyramidShader.setVec3("light.position", lightPos);
+        pyramidShader.setVec3("viewPosition", lightPos);
+
+        pyramidShader.setVec3("light.ambient", 0.1f, 0.1f, 0.05f);
+        pyramidShader.setVec3("light.diffuse", 0.5f, 0.5f, 0.5f);
+        pyramidShader.setVec3("light.specular", 1.2f, 1.2f, 1.2f);
+
+        pyramidShader.setFloat("light.constant", 1.0f);
+        pyramidShader.setFloat("light.linear", 0.00014f);
+        pyramidShader.setFloat("light.quadratic", 0.000007f);
+
+        pyramidShader.setVec3("pyramid.specular", glm::vec3(0.0f));
+        pyramidShader.setFloat("pyramid.shininess", 4.0f);
+
         model = glm::mat4(1.0f);
         model = glm::translate(model, glm::vec3(-9, 0.1f, 8.5f));
         model = glm::rotate(model, glm::radians(20.0f), glm::vec3(0.0f, 1.0, 0.0f));

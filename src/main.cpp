@@ -425,8 +425,8 @@ int main() {
         objectShader.setMat4("projection", projection);
         objectShader.setMat4("view", view);
         model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(6.0f, 5.0f, 0.0f)); // translate it down so it's at the center of the scene
-        model = glm::scale(model, glm::vec3(1.0f));
+        model = glm::translate(model, glm::vec3(-7.0f, -1.0f, -2.0f));
+        model = glm::scale(model, glm::vec3(1.8f));
         objectShader.setMat4("model", model);
         sphere.Draw(objectShader);
 

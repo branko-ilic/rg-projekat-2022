@@ -81,6 +81,8 @@ int main() {
     Model sphere(FileSystem::getPath("resources/objects/xxr-sphere/XXR_B_BLOODSTONE_002.obj"));
     sphere.SetShaderTextureNamePrefix("material.");
 
+    Shader tableTopCubeShader("resources/shaders/tableTopCube.vs", "resources/shaders/tableTopCube.fs");
+
     float vertices[] = {
             // back face
             -1.0f, -1.0f, -1.0f,  0.0f,  0.0f, -1.0f, 0.0f, 0.0f, // bottom-left
@@ -193,8 +195,6 @@ int main() {
 
     // tabletop cube definitions and light
 
-    Shader tableTopCubeShader("resources/shaders/tableTopCube.vs", "resources/shaders/tableTopCube.fs");
-
     unsigned int tableTopCubeVBO, tableTopCubeVAO;
     glGenVertexArrays(1, &tableTopCubeVAO);
     glGenBuffers(1, &tableTopCubeVBO);
@@ -210,8 +210,12 @@ int main() {
     glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
     glEnableVertexAttribArray(2);
 
-    Texture2D tableTopCubeTexture("resources/textures/red_brick.jpg", 2);
+    Texture2D tableTopCubeTexture("resources/textures/red_brick2.jpg", 2);
     Texture2D tableTopCubeTexture1("resources/textures/graffiti.jpeg", 3);
+
+    tableTopCubeShader.use();
+    tableTopCubeShader.setInt("material.diffuse", tableTopCubeTexture.getTextureNumber());
+    tableTopCubeShader.setInt("material.specular", tableTopCubeTexture1.getTextureNumber());
 
     // light source cube
 
@@ -226,14 +230,15 @@ int main() {
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
 
-    tableTopCubeShader.use();
-    tableTopCubeShader.setInt("material.diffuse", tableTopCubeTexture.getTextureNumber());
-    tableTopCubeShader.setInt("material.specular", tableTopCubeTexture1.getTextureNumber());
-
     while (!glfwWindowShouldClose(window)) {
         float currentFrame = static_cast<float>(glfwGetTime());
         deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
+
+        // spinning cube
+
+        lightPos.x = 3*sin(currentFrame)+1;
+        lightPos.z = 3*cos(currentFrame)+1;
 
         processInput(window);
 
@@ -321,8 +326,8 @@ int main() {
         pyramidShader.setVec3("light.specular", 1.2f, 1.2f, 1.2f);
 
         pyramidShader.setFloat("light.constant", 1.0f);
-        pyramidShader.setFloat("light.linear", 0.00014f);
-        pyramidShader.setFloat("light.quadratic", 0.000007f);
+        pyramidShader.setFloat("light.linear", 0.07f);
+        pyramidShader.setFloat("light.quadratic", 0.00002f);
 
         pyramidShader.setVec3("pyramid.specular", glm::vec3(0.0f));
         pyramidShader.setFloat("pyramid.shininess", 4.0f);
@@ -358,21 +363,36 @@ int main() {
         // Table top cubes
 
         tableTopCubeShader.use();
-        tableTopCubeShader.setVec3("light.position", lightPos);
         tableTopCubeShader.setVec3("viewPos", lightPos);
+        tableTopCubeShader.setFloat("material.shininess", 32.0f);
 
         // light properties
-        tableTopCubeShader.setVec3("light.ambient", 0.2f, 0.2f, 0.2f);
-        tableTopCubeShader.setVec3("light.diffuse", 0.5f, 0.5f, 0.5f);
-        tableTopCubeShader.setVec3("light.specular", 1.2f, 1.2f, 1.2f);
-        tableTopCubeShader.setFloat("light.constant", 1.0f);
-        tableTopCubeShader.setFloat("light.linear", 0.007f);
-        tableTopCubeShader.setFloat("light.quadratic", 0.0002f);
 
+//        tableTopCubeShader.setVec3("dirLight.direction", 9.0f, 2.1f, 9.0f);
+//        tableTopCubeShader.setVec3("dirLight.ambient", 0.01f, 0.01f, 0.01f);
+//        tableTopCubeShader.setVec3("dirLight.diffuse", 0.4f, 0.4f, 0.4f);
+//        tableTopCubeShader.setVec3("dirLight.specular", 1.0f, 1.0f, 1.0f);
 
-        // material properties
-        tableTopCubeShader.setVec3("material.specular", 0.5f, 0.5f, 0.5f);
-        tableTopCubeShader.setFloat("material.shininess", 64.0f);
+        tableTopCubeShader.setVec3("pointLight.position", lightPos);
+        tableTopCubeShader.setVec3("pointLight.ambient", 0.05f, 0.05f, 0.05f);
+        tableTopCubeShader.setVec3("pointLight.diffuse", 1.0f, 1.0f, 1.0f);
+        tableTopCubeShader.setVec3("pointLight.specular", 1.2f, 1.2f, 1.2f);
+        tableTopCubeShader.setFloat("pointLight.constant", 1.0f);
+        tableTopCubeShader.setFloat("pointLight.linear", 0.007f);
+        tableTopCubeShader.setFloat("pointLight.quadratic", 0.0002f);
+
+        tableTopCubeShader.setVec3("spotLight.position", camera.Position);
+        tableTopCubeShader.setVec3("spotLight.direction", camera.Front);
+        tableTopCubeShader.setVec3("spotLight.ambient", 0.0f, 0.0f, 0.0f);
+        tableTopCubeShader.setVec3("spotLight.diffuse", 1.0f, 1.0f, 1.0f);
+        tableTopCubeShader.setVec3("spotLight.specular", 1.0f, 1.0f, 1.0f);
+        tableTopCubeShader.setFloat("spotLight.constant", 1.0f);
+        tableTopCubeShader.setFloat("spotLight.linear", 0.09f);
+        tableTopCubeShader.setFloat("spotLight.quadratic", 0.032f);
+        tableTopCubeShader.setFloat("spotLight.cutOff", glm::cos(glm::radians(12.5f)));
+        tableTopCubeShader.setFloat("spotLight.outerCutOff", glm::cos(glm::radians(15.0f)));
+
+        // cube 1
 
         model = glm::mat4(1.0f);
         model = glm::translate(model, glm::vec3(9.0f, 2.1f, 9.0f));
@@ -386,6 +406,8 @@ int main() {
         glBindVertexArray(tableTopCubeVAO);
         glDrawArrays(GL_TRIANGLES, 0, 36);
 
+        // cube 2
+
         model = glm::mat4(1.0f);
         model = glm::translate(model, glm::vec3(9.0f, 1.6f, 3.0f));
         model = glm::rotate(model, glm::radians(20.0f), glm::vec3(0.0, 1.0f, 0.0f));
@@ -396,6 +418,8 @@ int main() {
 
         glBindVertexArray(tableTopCubeVAO);
         glDrawArrays(GL_TRIANGLES, 0, 36);
+
+        // cube 3
 
         model = glm::mat4(1.0f);
         model = glm::translate(model, glm::vec3(5.5f, 1.1f, 6.0f));

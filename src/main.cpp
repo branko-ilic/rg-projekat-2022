@@ -257,19 +257,36 @@ int main() {
 
         // Floor setup.
         floorShader.use();
-        floorShader.setVec3("light.position", lightPos);
         floorShader.setVec3("viewPos", lightPos);
+        floorShader.setFloat("material.shininess", 18.0f);
 
         // light properties
-        floorShader.setVec3("light.ambient", 0.2f, 0.2f, 0.2f);
-        floorShader.setVec3("light.diffuse", 0.5f, 0.5f, 0.5f);
-        floorShader.setVec3("light.specular", 1.2f, 1.2f, 1.2f);
-        floorShader.setFloat("light.constant", 1.0f);
-        floorShader.setFloat("light.linear", 0.007f);
-        floorShader.setFloat("light.quadratic", 0.0002f);
 
-        // material properties
-        floorShader.setFloat("material.shininess", 64.0f);
+        // TODO: isto kao kod tableTopCube problem
+
+        floorShader.setVec3("dirLight.direction", 9.0f, 2.1f, 9.0f);
+        floorShader.setVec3("dirLight.ambient", 0.01f, 0.01f, 0.01f);
+        floorShader.setVec3("dirLight.diffuse", 0.4f, 0.4f, 0.4f);
+        floorShader.setVec3("dirLight.specular", 1.0f, 1.0f, 1.0f);
+
+        floorShader.setVec3("pointLight.position", lightPos);
+        floorShader.setVec3("pointLight.ambient", 0.05f, 0.05f, 0.05f);
+        floorShader.setVec3("pointLight.diffuse", 0.8f, 0.8f, 0.8f);
+        floorShader.setVec3("pointLight.specular", 1.2f, 1.2f, 1.2f);
+        floorShader.setFloat("pointLight.constant", 1.0f);
+        floorShader.setFloat("pointLight.linear", 0.007f);
+        floorShader.setFloat("pointLight.quadratic", 0.0002f);
+
+        floorShader.setVec3("spotLight.position", camera.Position);
+        floorShader.setVec3("spotLight.direction", camera.Front);
+        floorShader.setVec3("spotLight.ambient", 0.0f, 0.0f, 0.0f);
+        floorShader.setVec3("spotLight.diffuse", 1.2f, 1.2f, 1.2f);
+        floorShader.setVec3("spotLight.specular", 1.0f, 1.0f, 1.0f);
+        floorShader.setFloat("spotLight.constant", 1.0f);
+        floorShader.setFloat("spotLight.linear", 0.007f);
+        floorShader.setFloat("spotLight.quadratic", 0.0002f);
+        floorShader.setFloat("spotLight.cutOff", glm::cos(glm::radians(12.5f)));
+        floorShader.setFloat("spotLight.outerCutOff", glm::cos(glm::radians(15.0f)));
 
         floorShader.setMat4("projection", projection);
         floorShader.setMat4("view", view);
@@ -368,10 +385,12 @@ int main() {
 
         // light properties
 
-//        tableTopCubeShader.setVec3("dirLight.direction", 9.0f, 2.1f, 9.0f);
-//        tableTopCubeShader.setVec3("dirLight.ambient", 0.01f, 0.01f, 0.01f);
-//        tableTopCubeShader.setVec3("dirLight.diffuse", 0.4f, 0.4f, 0.4f);
-//        tableTopCubeShader.setVec3("dirLight.specular", 1.0f, 1.0f, 1.0f);
+        // TODO: sta cemo sa direkcionim tj odakle? najverovatnije ce to biti kada dodamo cubemaps?
+
+        tableTopCubeShader.setVec3("dirLight.direction", 9.0f, 2.1f, 9.0f);
+        tableTopCubeShader.setVec3("dirLight.ambient", 0.01f, 0.01f, 0.01f);
+        tableTopCubeShader.setVec3("dirLight.diffuse", 0.4f, 0.4f, 0.4f);
+        tableTopCubeShader.setVec3("dirLight.specular", 1.0f, 1.0f, 1.0f);
 
         tableTopCubeShader.setVec3("pointLight.position", lightPos);
         tableTopCubeShader.setVec3("pointLight.ambient", 0.05f, 0.05f, 0.05f);
@@ -385,10 +404,10 @@ int main() {
         tableTopCubeShader.setVec3("spotLight.direction", camera.Front);
         tableTopCubeShader.setVec3("spotLight.ambient", 0.0f, 0.0f, 0.0f);
         tableTopCubeShader.setVec3("spotLight.diffuse", 1.0f, 1.0f, 1.0f);
-        tableTopCubeShader.setVec3("spotLight.specular", 1.0f, 1.0f, 1.0f);
+        tableTopCubeShader.setVec3("spotLight.specular", 1.2f, 1.2f, 1.2f);
         tableTopCubeShader.setFloat("spotLight.constant", 1.0f);
-        tableTopCubeShader.setFloat("spotLight.linear", 0.09f);
-        tableTopCubeShader.setFloat("spotLight.quadratic", 0.032f);
+        tableTopCubeShader.setFloat("spotLight.linear", 0.007f);
+        tableTopCubeShader.setFloat("spotLight.quadratic", 0.0002f);
         tableTopCubeShader.setFloat("spotLight.cutOff", glm::cos(glm::radians(12.5f)));
         tableTopCubeShader.setFloat("spotLight.outerCutOff", glm::cos(glm::radians(15.0f)));
 

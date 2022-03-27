@@ -23,6 +23,8 @@ void key_callback(GLFWwindow *window, int key, int scancode, int action, int mod
 // settings
 const unsigned int SCR_WIDTH = 1920;
 const unsigned int SCR_HEIGHT = 1080;
+bool flashLight = false;
+bool flashLightKeyPressed = false;
 
 // camera
 //Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
@@ -270,23 +272,12 @@ int main() {
         floorShader.setVec3("dirLight.specular", 1.0f, 1.0f, 1.0f);
 
         floorShader.setVec3("pointLight.position", lightPos);
-        floorShader.setVec3("pointLight.ambient", 0.05f, 0.05f, 0.05f);
+        floorShader.setVec3("pointLight.ambient", 0.01f, 0.01f, 0.01f);
         floorShader.setVec3("pointLight.diffuse", 0.8f, 0.8f, 0.8f);
         floorShader.setVec3("pointLight.specular", 1.2f, 1.2f, 1.2f);
         floorShader.setFloat("pointLight.constant", 1.0f);
-        floorShader.setFloat("pointLight.linear", 0.007f);
-        floorShader.setFloat("pointLight.quadratic", 0.0002f);
-
-        floorShader.setVec3("spotLight.position", camera.Position);
-        floorShader.setVec3("spotLight.direction", camera.Front);
-        floorShader.setVec3("spotLight.ambient", 0.0f, 0.0f, 0.0f);
-        floorShader.setVec3("spotLight.diffuse", 1.2f, 1.2f, 1.2f);
-        floorShader.setVec3("spotLight.specular", 1.0f, 1.0f, 1.0f);
-        floorShader.setFloat("spotLight.constant", 1.0f);
-        floorShader.setFloat("spotLight.linear", 0.007f);
-        floorShader.setFloat("spotLight.quadratic", 0.0002f);
-        floorShader.setFloat("spotLight.cutOff", glm::cos(glm::radians(12.5f)));
-        floorShader.setFloat("spotLight.outerCutOff", glm::cos(glm::radians(15.0f)));
+        floorShader.setFloat("pointLight.linear", 0.22f);
+        floorShader.setFloat("pointLight.quadratic", 0.0009f);
 
         floorShader.setMat4("projection", projection);
         floorShader.setMat4("view", view);
@@ -382,6 +373,7 @@ int main() {
         tableTopCubeShader.use();
         tableTopCubeShader.setVec3("viewPos", lightPos);
         tableTopCubeShader.setFloat("material.shininess", 32.0f);
+        tableTopCubeShader.setInt("flashLight", flashLight);
 
         // light properties
 
@@ -528,6 +520,16 @@ void processInput(GLFWwindow *window) {
         camera.MovementSpeed += 0.5f;
     if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
         camera.MovementSpeed -= 0.5f;
+
+    if (glfwGetKey(window, GLFW_KEY_F) == GLFW_PRESS && !flashLightKeyPressed)
+    {
+        flashLight = !flashLight;
+        flashLightKeyPressed = true;
+    }
+    if (glfwGetKey(window, GLFW_KEY_F) == GLFW_RELEASE)
+    {
+        flashLightKeyPressed = false;
+    }
 }
 
 // glfw: whenever the window size changed (by OS or user resize) this callback function executes

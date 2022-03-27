@@ -74,6 +74,12 @@ int main() {
 
     Shader floorShader("resources/shaders/cube.vs", "resources/shaders/cube.fs");
     Shader pyramidShader("resources/shaders/pyramid.vs", "resources/shaders/pyramid.fs");
+    Shader objectShader("resources/shaders/objectShader.vs", "resources/shaders/objectShader.fs");
+
+//    stbi_set_flip_vertically_on_load(true);
+
+    Model sphere(FileSystem::getPath("resources/objects/xxr-sphere/XXR_B_BLOODSTONE_002.obj"));
+    sphere.SetShaderTextureNamePrefix("material.");
 
     float vertices[] = {
             // back face
@@ -399,6 +405,30 @@ int main() {
 
         glBindVertexArray(tableTopCubeVAO);
         glDrawArrays(GL_TRIANGLES, 0, 36);
+
+        // Model setup.
+        objectShader.use();
+        objectShader.setVec3("light.position", lightPos);
+        objectShader.setVec3("viewPos", camera.Position);
+
+        objectShader.setVec3("light.ambient", glm::vec3(1.5f));
+        objectShader.setVec3("light.diffuse", 1.5f, 1.5f, 1.5f);
+        objectShader.setVec3("light.specular", 1.0f, 1.0f, 1.0f);
+
+        objectShader.setFloat("light.constant", 1.0f);
+        objectShader.setFloat("light.linear", 0.09f);
+        objectShader.setFloat("light.quadratic", 0.032f);
+
+        // material properties
+        objectShader.setFloat("material.shininess", 32.0f);
+
+        objectShader.setMat4("projection", projection);
+        objectShader.setMat4("view", view);
+        model = glm::mat4(1.0f);
+        model = glm::translate(model, glm::vec3(6.0f, 5.0f, 0.0f)); // translate it down so it's at the center of the scene
+        model = glm::scale(model, glm::vec3(1.0f));
+        objectShader.setMat4("model", model);
+        sphere.Draw(objectShader);
 
         // Lighting cube defining
 

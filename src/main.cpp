@@ -76,6 +76,7 @@ int main() {
     }
 
     Shader floorShader("resources/shaders/cube.vs", "resources/shaders/cube.fs");
+    Shader shader("resources/shaders/shader.vs", "resources/shaders/shader.fs");
     Shader pyramidShader("resources/shaders/pyramid.vs", "resources/shaders/pyramid.fs");
     Shader objectShader("resources/shaders/objectShader.vs", "resources/shaders/objectShader.fs");
 
@@ -85,6 +86,7 @@ int main() {
     sphere.SetShaderTextureNamePrefix("material.");
 
     Shader tableTopCubeShader("resources/shaders/tableTopCube.vs", "resources/shaders/tableTopCube.fs");
+
 
     float vertices[] = {
             // back face
@@ -214,12 +216,52 @@ int main() {
     glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
     glEnableVertexAttribArray(2);
 
-    Texture2D tableTopCubeTexture("resources/textures/red_brick2.jpg", 2);
+    Texture2D tableTopCubeTexture("resources/textures/red_brick3.jpg", 2);
     Texture2D tableTopCubeTexture1("resources/textures/graffiti.jpeg", 3);
 
     tableTopCubeShader.use();
     tableTopCubeShader.setInt("material.diffuse", tableTopCubeTexture.getTextureNumber());
 //    tableTopCubeShader.setInt("material.specular", tableTopCubeTexture1.getTextureNumber());
+
+    // transparent vertices
+
+    float transparentVertices[] = {
+            // positions         // texture Coords (swapped y coordinates because texture is flipped upside down)
+            0.0f,  0.5f,  0.0f,  0.0f,  0.0f,
+            0.0f, -0.5f,  0.0f,  0.0f,  1.0f,
+            1.0f, -0.5f,  0.0f,  1.0f,  1.0f,
+
+            0.0f,  0.5f,  0.0f,  0.0f,  0.0f,
+            1.0f, -0.5f,  0.0f,  1.0f,  1.0f,
+            1.0f,  0.5f,  0.0f,  1.0f,  0.0f
+    };
+
+    unsigned int transparentVAO, transparentVBO;
+    glGenVertexArrays(1, &transparentVAO);
+    glGenBuffers(1, &transparentVBO);
+
+    glBindBuffer(GL_ARRAY_BUFFER, transparentVBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(transparentVertices), transparentVertices, GL_STATIC_DRAW);
+
+    glBindVertexArray(transparentVAO);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
+    glEnableVertexAttribArray(1);
+
+    vector<glm::vec3> vegetation
+    {
+        glm::vec3(-1.5f, 2.0f, -0.48f),
+        glm::vec3( 1.5f, 2.0f, 0.51f),
+        glm::vec3( 0.0f, 2.0f, 0.7f),
+        glm::vec3(-0.3f, 2.0f, -2.3f),
+        glm::vec3(0.5f, 2.0f, -0.6f)
+    };
+
+    Texture2D transparentTexture("resources/textures/crack.png", 4);
+
+    shader.use();
+    shader.setInt("texture1", transparentTexture.getTextureNumber());
 
     // light source cube
 
@@ -252,6 +294,7 @@ int main() {
         woodTexture.bind();
         pyramidTexture.bind();
         tableTopCubeTexture.bind();
+        transparentTexture.bind();
 //        tableTopCubeTexture1.bind();
 
         glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
@@ -322,6 +365,20 @@ int main() {
         floorShader.setMat4("model", model);
         glBindVertexArray(cubeVAO);
         glDrawArrays(GL_TRIANGLES, 0, 36);
+
+        // transparent setup
+
+        shader.use();
+        model = glm::mat4(1.0f);
+        shader.setMat4("projection", projection);
+        shader.setMat4("view", view);
+        model = glm::translate(model, glm::vec3(6.8f, 2.4f, 9.0f));
+        model = glm::rotate(model, glm::radians(-70.0f), glm::vec3(0.0f, -1.0, 0.0f));
+        model = glm::scale(model, glm::vec3(2.7f));
+
+        shader.setMat4("model", model);
+        glBindVertexArray(transparentVAO);
+        glDrawArrays(GL_TRIANGLES, 0, 6);
 
         // Pyramid setup.
 
@@ -499,21 +556,6 @@ int main() {
         objectShader.setFloat("spotLight.cutOff", glm::cos(glm::radians(12.5f)));
         objectShader.setFloat("spotLight.outerCutOff", glm::cos(glm::radians(15.0f)));
 
-//        objectShader.use();
-//        objectShader.setVec3("light.position", lightPos);
-//        objectShader.setVec3("viewPos", camera.Position);
-//
-//        objectShader.setVec3("light.ambient", glm::vec3(1.5f));
-//        objectShader.setVec3("light.diffuse", 1.5f, 1.5f, 1.5f);
-//        objectShader.setVec3("light.specular", 1.0f, 1.0f, 1.0f);
-//
-//        objectShader.setFloat("light.constant", 1.0f);
-//        objectShader.setFloat("light.linear", 0.09f);
-//        objectShader.setFloat("light.quadratic", 0.032f);
-
-        // material properties
-//        objectShader.setFloat("material.shininess", 32.0f);
-
         objectShader.setMat4("projection", projection);
         objectShader.setMat4("view", view);
         model = glm::mat4(1.0f);
@@ -549,6 +591,9 @@ int main() {
     glDeleteVertexArrays(1, &tableTopCubeVAO);
     glDeleteBuffers(1, &tableTopCubeVBO);
     glDeleteVertexArrays(1, &lightCubeVAO);
+
+    glDeleteBuffers(1, &transparentVBO);
+    glDeleteVertexArrays(1, &transparentVAO);
 
     glfwTerminate();
     return 0;

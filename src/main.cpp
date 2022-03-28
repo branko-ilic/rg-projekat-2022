@@ -76,6 +76,7 @@ int main() {
     }
 
     Shader floorShader("resources/shaders/cube.vs", "resources/shaders/cube.fs");
+    Shader blendingShader("resources/shaders/blendingShader.vs", "resources/shaders/blendingShader.fs");
     Shader pyramidShader("resources/shaders/pyramid.vs", "resources/shaders/pyramid.fs");
     Shader objectShader("resources/shaders/objectShader.vs", "resources/shaders/objectShader.fs");
 
@@ -150,19 +151,19 @@ int main() {
     float pyramidVertices[] = {
             // positions         // normals           // texture coords
             1.0f,  0.0f,  0.0f,  1.0f,  0.0f,  0.0f,  0.0f,  0.0f,    //A
-            0.0f,  1.0f,  0.0f,  0.0f,  1.0f,  0.0f,  1.0f,  0.0f,    //B
-            -1.0f,  0.0f,  0.0f, -1.0f,  0.0f,  0.0f,  1.0f,  1.0f,    //C
-            0.0f, -1.0f,  0.0f,  0.0f, -1.0f,  0.0f,  0.0f,  1.0f,    //D
-            0.0f,  0.0f,  2.0f,  0.0f,  0.0f,  1.0f,  0.5f,  0.5f,	   //E
+            0.0f,  1.0f,  0.0f,  0.0f,  1.0f,  0.0f,  5.0f,  0.0f,    //B
+            -1.0f,  0.0f,  0.0f, -1.0f,  0.0f,  0.0f,  0.0f,  0.0f,    //C
+            0.0f, -1.0f,  0.0f,  0.0f, -1.0f,  0.0f,  5.0f,  0.0f,    //D
+            0.0f,  0.0f,  2.0f,  0.0f,  0.0f,  1.0f,  2.5f,  5.0f,	   //E
     };
 
     unsigned int pyramidIndices[] = {
-            0, 1, 3,	//ABD
-            1, 2, 3,	//BDC
-            0, 1, 4,	//ABE
-            0, 3, 4,	//ADE
-            2, 3, 4,	//CDE
-            1, 2, 4,	//BCE
+            0, 3, 1,
+            1, 3, 2,
+            0, 1, 4,
+            0, 4, 3,
+            2, 3, 4,
+            1, 2, 4
     };
 
     unsigned int pyramidVAO, pyramidVBO, pyramidEBO;
@@ -187,7 +188,7 @@ int main() {
     glEnableVertexAttribArray(2);
 
     Texture2D woodTexture("resources/textures/table.jpg", 0);
-    Texture2D pyramidTexture("resources/textures/egypt_symbols.jpg", 1);
+    Texture2D pyramidTexture("resources/textures/bricks2.jpg", 1);
 
     glEnable(GL_DEPTH_TEST);
 
@@ -214,12 +215,43 @@ int main() {
     glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
     glEnableVertexAttribArray(2);
 
-    Texture2D tableTopCubeTexture("resources/textures/red_brick2.jpg", 2);
+    Texture2D tableTopCubeTexture("resources/textures/red_brick3.jpg", 2);
     Texture2D tableTopCubeTexture1("resources/textures/graffiti.jpeg", 3);
 
     tableTopCubeShader.use();
     tableTopCubeShader.setInt("material.diffuse", tableTopCubeTexture.getTextureNumber());
 //    tableTopCubeShader.setInt("material.specular", tableTopCubeTexture1.getTextureNumber());
+
+    // transparent vertices
+
+    float transparentVertices[] = {
+            // positions         // texture Coords (swapped y coordinates because texture is flipped upside down)
+            0.0f,  0.5f,  0.0f,  0.0f,  0.0f,
+            0.0f, -0.5f,  0.0f,  0.0f,  1.0f,
+            1.0f, -0.5f,  0.0f,  1.0f,  1.0f,
+
+            0.0f,  0.5f,  0.0f,  0.0f,  0.0f,
+            1.0f, -0.5f,  0.0f,  1.0f,  1.0f,
+            1.0f,  0.5f,  0.0f,  1.0f,  0.0f
+    };
+
+    unsigned int transparentVAO, transparentVBO;
+    glGenVertexArrays(1, &transparentVAO);
+    glGenBuffers(1, &transparentVBO);
+
+    glBindBuffer(GL_ARRAY_BUFFER, transparentVBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(transparentVertices), transparentVertices, GL_STATIC_DRAW);
+
+    glBindVertexArray(transparentVAO);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
+    glEnableVertexAttribArray(1);
+
+    Texture2D transparentTexture("resources/textures/crack.png", 4);
+
+    blendingShader.use();
+    blendingShader.setInt("texture1", transparentTexture.getTextureNumber());
 
     // light source cube
 
@@ -233,6 +265,8 @@ int main() {
     // note that we update the lamp's position attribute's stride to reflect the updated buffer data
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
+
+    glEnable(GL_CULL_FACE);
 
     while (!glfwWindowShouldClose(window)) {
         float currentFrame = static_cast<float>(glfwGetTime());
@@ -252,6 +286,7 @@ int main() {
         woodTexture.bind();
         pyramidTexture.bind();
         tableTopCubeTexture.bind();
+        transparentTexture.bind();
 //        tableTopCubeTexture1.bind();
 
         glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
@@ -268,7 +303,7 @@ int main() {
         // TODO: isto kao kod tableTopCube problem
 
         floorShader.setVec3("dirLight.direction", 9.0f, 2.1f, 9.0f);
-        floorShader.setVec3("dirLight.ambient", 0.1f, 0.1f, 0.1f);
+        floorShader.setVec3("dirLight.ambient", glm::vec3(0.2));
         floorShader.setVec3("dirLight.diffuse", 0.4f, 0.4f, 0.4f);
         floorShader.setVec3("dirLight.specular", 1.0f, 1.0f, 1.0f);
 
@@ -322,6 +357,20 @@ int main() {
         floorShader.setMat4("model", model);
         glBindVertexArray(cubeVAO);
         glDrawArrays(GL_TRIANGLES, 0, 36);
+
+        // transparent setup
+
+        blendingShader.use();
+        model = glm::mat4(1.0f);
+        blendingShader.setMat4("projection", projection);
+        blendingShader.setMat4("view", view);
+        model = glm::translate(model, glm::vec3(6.8f, 2.4f, 9.0f));
+        model = glm::rotate(model, glm::radians(-70.0f), glm::vec3(0.0f, -1.0, 0.0f));
+        model = glm::scale(model, glm::vec3(2.7f));
+
+        blendingShader.setMat4("model", model);
+        glBindVertexArray(transparentVAO);
+        glDrawArrays(GL_TRIANGLES, 0, 6);
 
         // Pyramid setup.
 
@@ -499,21 +548,6 @@ int main() {
         objectShader.setFloat("spotLight.cutOff", glm::cos(glm::radians(12.5f)));
         objectShader.setFloat("spotLight.outerCutOff", glm::cos(glm::radians(15.0f)));
 
-//        objectShader.use();
-//        objectShader.setVec3("light.position", lightPos);
-//        objectShader.setVec3("viewPos", camera.Position);
-//
-//        objectShader.setVec3("light.ambient", glm::vec3(1.5f));
-//        objectShader.setVec3("light.diffuse", 1.5f, 1.5f, 1.5f);
-//        objectShader.setVec3("light.specular", 1.0f, 1.0f, 1.0f);
-//
-//        objectShader.setFloat("light.constant", 1.0f);
-//        objectShader.setFloat("light.linear", 0.09f);
-//        objectShader.setFloat("light.quadratic", 0.032f);
-
-        // material properties
-//        objectShader.setFloat("material.shininess", 32.0f);
-
         objectShader.setMat4("projection", projection);
         objectShader.setMat4("view", view);
         model = glm::mat4(1.0f);
@@ -549,6 +583,9 @@ int main() {
     glDeleteVertexArrays(1, &tableTopCubeVAO);
     glDeleteBuffers(1, &tableTopCubeVBO);
     glDeleteVertexArrays(1, &lightCubeVAO);
+
+    glDeleteBuffers(1, &transparentVBO);
+    glDeleteVertexArrays(1, &transparentVAO);
 
     glfwTerminate();
     return 0;

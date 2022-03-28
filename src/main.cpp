@@ -59,6 +59,7 @@ int main() {
         glfwTerminate();
         return -1;
     }
+
     glfwMakeContextCurrent(window);
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
     glfwSetCursorPosCallback(window, mouse_callback);
@@ -145,22 +146,23 @@ int main() {
     glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void *)(6 * sizeof(float)));
     glEnableVertexAttribArray(2);
 
-    GLfloat pyramidVertices[] =
-            { /*    COORDINATES */     /*        NORMALS      *//*   TexCoord  */
-                    -0.5f, 0.0f,  0.5f,      1.0f,  0.0f,  0.0f,	0.0f, 0.0f,
-                    -0.5f, 0.0f, -0.5f,     0.0f,  1.0f,  0.0f,	5.0f, 0.0f,
-                    0.5f, 0.0f, -0.5f,     -1.0f,  0.0f,  0.0f,	0.0f, 0.0f,
-                    0.5f, 0.0f,  0.5f,     0.0f, -1.0f,  0.0f,	5.0f, 0.0f,
-                    0.0f, 0.8f,  0.0f,     0.0f,  0.0f,  1.0f,	2.5f, 5.0f
-            };
+    // pyramid coordinates
+    float pyramidVertices[] = {
+            // positions         // normals           // texture coords
+            1.0f,  0.0f,  0.0f,  1.0f,  0.0f,  0.0f,  0.0f,  0.0f,    //A
+            0.0f,  1.0f,  0.0f,  0.0f,  1.0f,  0.0f,  1.0f,  0.0f,    //B
+            -1.0f,  0.0f,  0.0f, -1.0f,  0.0f,  0.0f,  1.0f,  1.0f,    //C
+            0.0f, -1.0f,  0.0f,  0.0f, -1.0f,  0.0f,  0.0f,  1.0f,    //D
+            0.0f,  0.0f,  2.0f,  0.0f,  0.0f,  1.0f,  0.5f,  0.5f,	   //E
+    };
 
     unsigned int pyramidIndices[] = {
-            0, 1, 3,
-            1, 2, 3,
-            0, 1, 4,
-            0, 3, 4,
-            2, 3, 4,
-            1, 2, 4
+            0, 1, 3,	//ABD
+            1, 2, 3,	//BDC
+            0, 1, 4,	//ABE
+            0, 3, 4,	//ADE
+            2, 3, 4,	//CDE
+            1, 2, 4,	//BCE
     };
 
     unsigned int pyramidVAO, pyramidVBO, pyramidEBO;
@@ -185,7 +187,7 @@ int main() {
     glEnableVertexAttribArray(2);
 
     Texture2D woodTexture("resources/textures/table.jpg", 0);
-    Texture2D pyramidTexture("resources/textures/bricks2.jpg", 1);
+    Texture2D pyramidTexture("resources/textures/egypt_symbols.jpg", 1);
 
     glEnable(GL_DEPTH_TEST);
 
@@ -193,7 +195,7 @@ int main() {
     floorShader.setInt("material.specular", woodTexture.getTextureNumber());
 
     pyramidShader.use();
-    pyramidShader.setInt("pyramid.diffuse", pyramidTexture.getTextureNumber());
+    pyramidShader.setInt("material.diffuse", pyramidTexture.getTextureNumber());
 
     // tabletop cube definitions and light
 
@@ -217,7 +219,7 @@ int main() {
 
     tableTopCubeShader.use();
     tableTopCubeShader.setInt("material.diffuse", tableTopCubeTexture.getTextureNumber());
-    tableTopCubeShader.setInt("material.specular", tableTopCubeTexture1.getTextureNumber());
+//    tableTopCubeShader.setInt("material.specular", tableTopCubeTexture1.getTextureNumber());
 
     // light source cube
 
@@ -250,8 +252,7 @@ int main() {
         woodTexture.bind();
         pyramidTexture.bind();
         tableTopCubeTexture.bind();
-        tableTopCubeTexture1.bind();
-
+//        tableTopCubeTexture1.bind();
 
         glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
         glm::mat4 view = camera.GetViewMatrix();
@@ -267,14 +268,14 @@ int main() {
         // TODO: isto kao kod tableTopCube problem
 
         floorShader.setVec3("dirLight.direction", 9.0f, 2.1f, 9.0f);
-        floorShader.setVec3("dirLight.ambient", 0.01f, 0.01f, 0.01f);
+        floorShader.setVec3("dirLight.ambient", 0.1f, 0.1f, 0.1f);
         floorShader.setVec3("dirLight.diffuse", 0.4f, 0.4f, 0.4f);
         floorShader.setVec3("dirLight.specular", 1.0f, 1.0f, 1.0f);
 
         floorShader.setVec3("pointLight.position", lightPos);
-        floorShader.setVec3("pointLight.ambient", 0.01f, 0.01f, 0.01f);
-        floorShader.setVec3("pointLight.diffuse", 0.8f, 0.8f, 0.8f);
-        floorShader.setVec3("pointLight.specular", 1.2f, 1.2f, 1.2f);
+        floorShader.setVec3("pointLight.ambient", 0.1f, 0.1f, 0.1f);
+        floorShader.setVec3("pointLight.diffuse", 0.95f, 0.95f, 0.95f);
+        floorShader.setVec3("pointLight.specular", 0.5f, 0.5f, 0.5f);
         floorShader.setFloat("pointLight.constant", 1.0f);
         floorShader.setFloat("pointLight.linear", 0.22f);
         floorShader.setFloat("pointLight.quadratic", 0.0009f);
@@ -323,50 +324,69 @@ int main() {
         glDrawArrays(GL_TRIANGLES, 0, 36);
 
         // Pyramid setup.
+
         pyramidShader.use();
+        pyramidShader.setVec3("viewPos", lightPos);
+        pyramidShader.setFloat("material.shininess", 1.0f);
+        pyramidShader.setInt("flashLight", flashLight);
 
-        //      Light setup.
-        pyramidShader.setVec3("light.position", lightPos);
-        pyramidShader.setVec3("viewPosition", lightPos);
+        // light properties
 
-        pyramidShader.setVec3("light.ambient", 0.1f, 0.1f, 0.05f);
-        pyramidShader.setVec3("light.diffuse", 0.5f, 0.5f, 0.5f);
-        pyramidShader.setVec3("light.specular", 1.2f, 1.2f, 1.2f);
+        // TODO: sta cemo sa direkcionim tj odakle? najverovatnije ce to biti kada dodamo cubemaps?
 
-        pyramidShader.setFloat("light.constant", 1.0f);
-        pyramidShader.setFloat("light.linear", 0.07f);
-        pyramidShader.setFloat("light.quadratic", 0.00002f);
+        pyramidShader.setVec3("dirLight.direction", -9, 0.1f, 8.5f);
+        pyramidShader.setVec3("dirLight.ambient", 0.01f, 0.01f, 0.01f);
+        pyramidShader.setVec3("dirLight.diffuse", 0.4f, 0.4f, 0.4f);
+        pyramidShader.setVec3("dirLight.specular", 1.0f, 1.0f, 1.0f);
 
-        pyramidShader.setVec3("pyramid.specular", glm::vec3(0.0f));
-        pyramidShader.setFloat("pyramid.shininess", 4.0f);
+        pyramidShader.setVec3("pointLight.position", lightPos);
+        pyramidShader.setVec3("pointLight.ambient", 0.1f, 0.1f, 0.05f);
+        pyramidShader.setVec3("pointLight.diffuse", 1.0f, 1.0f, 1.0f);
+        pyramidShader.setVec3("pointLight.specular", 0.0f, 0.0f, 0.0f);
+        pyramidShader.setFloat("pointLight.constant", 1.0f);
+        pyramidShader.setFloat("pointLight.linear", 0.07f);
+        pyramidShader.setFloat("pointLight.quadratic", 0.00002f);
+
+        pyramidShader.setVec3("spotLight.position", camera.Position);
+        pyramidShader.setVec3("spotLight.direction", camera.Front);
+        pyramidShader.setVec3("spotLight.ambient", 0.0f, 0.0f, 0.0f);
+        pyramidShader.setVec3("spotLight.diffuse", 1.0f, 1.0f, 1.0f);
+        pyramidShader.setVec3("spotLight.specular", 0.8f, 0.8f, 0.8f);
+        pyramidShader.setFloat("spotLight.constant", 1.0f);
+        pyramidShader.setFloat("spotLight.linear", 0.007f);
+        pyramidShader.setFloat("spotLight.quadratic", 0.0002f);
+        pyramidShader.setFloat("spotLight.cutOff", glm::cos(glm::radians(12.5f)));
+        pyramidShader.setFloat("spotLight.outerCutOff", glm::cos(glm::radians(15.0f)));
+
 
         model = glm::mat4(1.0f);
         model = glm::translate(model, glm::vec3(-9, 0.1f, 8.5f));
-        model = glm::rotate(model, glm::radians(20.0f), glm::vec3(0.0f, 1.0, 0.0f));
-        model = glm::scale(model, glm::vec3(5.0f));
+        model = glm::rotate(model, glm::radians(90.0f), glm::vec3(-1.0f, 0.0, 0.0f));
+        model = glm::scale(model, glm::vec3(3.0f));
         pyramidShader.setMat4("model", model);
         pyramidShader.setMat4("projection", projection);
         pyramidShader.setMat4("view", view);
 
         glBindVertexArray(pyramidVAO);
-        glDrawElements( GL_TRIANGLES, 18, GL_UNSIGNED_INT, 0);
+        glDrawElements(GL_TRIANGLES, 18, GL_UNSIGNED_INT, 0);
 
         model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(-9, 0.1f, 4.3f));
-        model = glm::rotate(model, glm::radians(20.0f), glm::vec3(0.0f, 1.0, 0.0f));
-        model = glm::scale(model, glm::vec3(3.0f));
+        model = glm::translate(model, glm::vec3(-9, 0.1f, 3.0f));
+        model = glm::rotate(model, glm::radians(90.0f), glm::vec3(-1.0f, 0.0, 0.0f));
+        model = glm::scale(model, glm::vec3(2.5f));
         pyramidShader.setMat4("model", model);
 
         glBindVertexArray(pyramidVAO);
-        glDrawElements( GL_TRIANGLES, 18, GL_UNSIGNED_INT, 0);
+        glDrawElements(GL_TRIANGLES, 18, GL_UNSIGNED_INT, 0);
 
         model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(-6.7, 0.1f, 6));
-        model = glm::rotate(model, glm::radians(20.f), glm::vec3(0.0f, 1.0, 0.0f));
+        model = glm::translate(model, glm::vec3(-6.7, 0.1f, 5.3));
+        model = glm::rotate(model, glm::radians(90.0f), glm::vec3(-1.0f, 0.0, 0.0f));
+        model = glm::scale(model, glm::vec3(1.5f));
         pyramidShader.setMat4("model", model);
 
         glBindVertexArray(pyramidVAO);
-        glDrawElements( GL_TRIANGLES, 18, GL_UNSIGNED_INT, 0);
+        glDrawElements(GL_TRIANGLES, 18, GL_UNSIGNED_INT, 0);
 
         // Table top cubes
 
@@ -387,7 +407,7 @@ int main() {
         tableTopCubeShader.setVec3("pointLight.position", lightPos);
         tableTopCubeShader.setVec3("pointLight.ambient", 0.05f, 0.05f, 0.05f);
         tableTopCubeShader.setVec3("pointLight.diffuse", 1.0f, 1.0f, 1.0f);
-        tableTopCubeShader.setVec3("pointLight.specular", 1.2f, 1.2f, 1.2f);
+        tableTopCubeShader.setVec3("pointLight.specular", 0.0f, 0.0f, 0.0f);
         tableTopCubeShader.setFloat("pointLight.constant", 1.0f);
         tableTopCubeShader.setFloat("pointLight.linear", 0.007f);
         tableTopCubeShader.setFloat("pointLight.quadratic", 0.0002f);
@@ -442,26 +462,63 @@ int main() {
         glDrawArrays(GL_TRIANGLES, 0, 36);
 
         // Model setup.
+
         objectShader.use();
-        objectShader.setVec3("light.position", lightPos);
-        objectShader.setVec3("viewPos", camera.Position);
+        objectShader.setVec3("viewPos", lightPos);
+        objectShader.setFloat("material.shininess", 18.0f);
+        objectShader.setInt("flashLight", flashLight);
 
-        objectShader.setVec3("light.ambient", glm::vec3(1.5f));
-        objectShader.setVec3("light.diffuse", 1.5f, 1.5f, 1.5f);
-        objectShader.setVec3("light.specular", 1.0f, 1.0f, 1.0f);
+        // light properties
 
-        objectShader.setFloat("light.constant", 1.0f);
-        objectShader.setFloat("light.linear", 0.09f);
-        objectShader.setFloat("light.quadratic", 0.032f);
+        // TODO: sta cemo sa direkcionim tj odakle? najverovatnije ce to biti kada dodamo cubemaps?
+
+        // takodje komentarisan deo za dirLight jer pravi 2 mala kruga na poledjini sfere
+        // i u objectShader.fs je ovaj deo koji racuna dirLight zakomentarisan u main-u
+
+        objectShader.setVec3("dirLight.direction", 9.0f, 2.1f, 9.0f);
+        objectShader.setVec3("dirLight.ambient", 0.01f, 0.01f, 0.01f);
+        objectShader.setVec3("dirLight.diffuse", 0.4f, 0.4f, 0.4f);
+        objectShader.setVec3("dirLight.specular", 1.0f, 1.0f, 1.0f);
+
+        objectShader.setVec3("pointLight.position", lightPos);
+        objectShader.setVec3("pointLight.ambient", 0.05f, 0.05f, 0.05f);
+        objectShader.setVec3("pointLight.diffuse", 1.0f, 1.0f, 1.0f);
+        objectShader.setVec3("pointLight.specular", 0.0f, 0.0f, 0.0f);
+        objectShader.setFloat("pointLight.constant", 1.0f);
+        objectShader.setFloat("pointLight.linear", 0.007f);
+        objectShader.setFloat("pointLight.quadratic", 0.0002f);
+
+        objectShader.setVec3("spotLight.position", camera.Position);
+        objectShader.setVec3("spotLight.direction", camera.Front);
+        objectShader.setVec3("spotLight.ambient", 0.0f, 0.0f, 0.0f);
+        objectShader.setVec3("spotLight.diffuse", 1.0f, 1.0f, 1.0f);
+        objectShader.setVec3("spotLight.specular", 1.2f, 1.2f, 1.2f);
+        objectShader.setFloat("spotLight.constant", 1.0f);
+        objectShader.setFloat("spotLight.linear", 0.007f);
+        objectShader.setFloat("spotLight.quadratic", 0.0002f);
+        objectShader.setFloat("spotLight.cutOff", glm::cos(glm::radians(12.5f)));
+        objectShader.setFloat("spotLight.outerCutOff", glm::cos(glm::radians(15.0f)));
+
+//        objectShader.use();
+//        objectShader.setVec3("light.position", lightPos);
+//        objectShader.setVec3("viewPos", camera.Position);
+//
+//        objectShader.setVec3("light.ambient", glm::vec3(1.5f));
+//        objectShader.setVec3("light.diffuse", 1.5f, 1.5f, 1.5f);
+//        objectShader.setVec3("light.specular", 1.0f, 1.0f, 1.0f);
+//
+//        objectShader.setFloat("light.constant", 1.0f);
+//        objectShader.setFloat("light.linear", 0.09f);
+//        objectShader.setFloat("light.quadratic", 0.032f);
 
         // material properties
-        objectShader.setFloat("material.shininess", 32.0f);
+//        objectShader.setFloat("material.shininess", 32.0f);
 
         objectShader.setMat4("projection", projection);
         objectShader.setMat4("view", view);
         model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(6.0f, 5.0f, 0.0f)); // translate it down so it's at the center of the scene
-        model = glm::scale(model, glm::vec3(1.0f));
+        model = glm::translate(model, glm::vec3(-7.0f, -1.0f, -2.0f));
+        model = glm::scale(model, glm::vec3(1.8f));
         objectShader.setMat4("model", model);
         sphere.Draw(objectShader);
 

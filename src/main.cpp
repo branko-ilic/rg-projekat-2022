@@ -76,7 +76,7 @@ int main() {
     }
 
     Shader floorShader("resources/shaders/cube.vs", "resources/shaders/cube.fs");
-    Shader shader("resources/shaders/shader.vs", "resources/shaders/shader.fs");
+    Shader blendingShader("resources/shaders/blendingShader.vs", "resources/shaders/blendingShader.fs");
     Shader pyramidShader("resources/shaders/pyramid.vs", "resources/shaders/pyramid.fs");
     Shader objectShader("resources/shaders/objectShader.vs", "resources/shaders/objectShader.fs");
 
@@ -249,19 +249,10 @@ int main() {
     glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
     glEnableVertexAttribArray(1);
 
-    vector<glm::vec3> vegetation
-    {
-        glm::vec3(-1.5f, 2.0f, -0.48f),
-        glm::vec3( 1.5f, 2.0f, 0.51f),
-        glm::vec3( 0.0f, 2.0f, 0.7f),
-        glm::vec3(-0.3f, 2.0f, -2.3f),
-        glm::vec3(0.5f, 2.0f, -0.6f)
-    };
-
     Texture2D transparentTexture("resources/textures/crack.png", 4);
 
-    shader.use();
-    shader.setInt("texture1", transparentTexture.getTextureNumber());
+    blendingShader.use();
+    blendingShader.setInt("texture1", transparentTexture.getTextureNumber());
 
     // light source cube
 
@@ -368,15 +359,15 @@ int main() {
 
         // transparent setup
 
-        shader.use();
+        blendingShader.use();
         model = glm::mat4(1.0f);
-        shader.setMat4("projection", projection);
-        shader.setMat4("view", view);
+        blendingShader.setMat4("projection", projection);
+        blendingShader.setMat4("view", view);
         model = glm::translate(model, glm::vec3(6.8f, 2.4f, 9.0f));
         model = glm::rotate(model, glm::radians(-70.0f), glm::vec3(0.0f, -1.0, 0.0f));
         model = glm::scale(model, glm::vec3(2.7f));
 
-        shader.setMat4("model", model);
+        blendingShader.setMat4("model", model);
         glBindVertexArray(transparentVAO);
         glDrawArrays(GL_TRIANGLES, 0, 6);
 

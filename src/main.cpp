@@ -87,7 +87,6 @@ int main() {
 
     Shader tableTopCubeShader("resources/shaders/tableTopCube.vs", "resources/shaders/tableTopCube.fs");
 
-
     float vertices[] = {
             // back face
             -1.0f, -1.0f, -1.0f,  0.0f,  0.0f, -1.0f, 0.0f, 0.0f, // bottom-left
@@ -159,12 +158,12 @@ int main() {
     };
 
     unsigned int pyramidIndices[] = {
-            0, 1, 3,	//ABD
-            1, 2, 3,	//BDC
-            0, 1, 4,	//ABE
-            0, 3, 4,	//ADE
-            2, 3, 4,	//CDE
-            1, 2, 4,	//BCE
+            0, 3, 1,
+            1, 3, 2,
+            0, 1, 4,
+            0, 4, 3,
+            2, 3, 4,
+            1, 2, 4
     };
 
     unsigned int pyramidVAO, pyramidVBO, pyramidEBO;
@@ -266,6 +265,8 @@ int main() {
     // note that we update the lamp's position attribute's stride to reflect the updated buffer data
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
+
+    glEnable(GL_CULL_FACE);
 
     while (!glfwWindowShouldClose(window)) {
         float currentFrame = static_cast<float>(glfwGetTime());

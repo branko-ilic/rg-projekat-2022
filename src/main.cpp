@@ -23,6 +23,8 @@ void key_callback(GLFWwindow *window, int key, int scancode, int action, int mod
 // settings
 const unsigned int SCR_WIDTH = 1920;
 const unsigned int SCR_HEIGHT = 1080;
+bool flashLight = false;
+bool flashLightKeyPressed = false;
 
 // camera
 //Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
@@ -57,6 +59,7 @@ int main() {
         glfwTerminate();
         return -1;
     }
+
     glfwMakeContextCurrent(window);
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
     glfwSetCursorPosCallback(window, mouse_callback);
@@ -80,6 +83,8 @@ int main() {
 
     Model sphere(FileSystem::getPath("resources/objects/xxr-sphere/XXR_B_BLOODSTONE_002.obj"));
     sphere.SetShaderTextureNamePrefix("material.");
+
+    Shader tableTopCubeShader("resources/shaders/tableTopCube.vs", "resources/shaders/tableTopCube.fs");
 
     float vertices[] = {
             // back face
@@ -141,22 +146,23 @@ int main() {
     glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void *)(6 * sizeof(float)));
     glEnableVertexAttribArray(2);
 
-    GLfloat pyramidVertices[] =
-            { /*    COORDINATES */     /*        NORMALS      *//*   TexCoord  */
-                    -0.5f, 0.0f,  0.5f,      1.0f,  0.0f,  0.0f,	0.0f, 0.0f,
-                    -0.5f, 0.0f, -0.5f,     0.0f,  1.0f,  0.0f,	5.0f, 0.0f,
-                    0.5f, 0.0f, -0.5f,     -1.0f,  0.0f,  0.0f,	0.0f, 0.0f,
-                    0.5f, 0.0f,  0.5f,     0.0f, -1.0f,  0.0f,	5.0f, 0.0f,
-                    0.0f, 0.8f,  0.0f,     0.0f,  0.0f,  1.0f,	2.5f, 5.0f
-            };
+    // pyramid coordinates
+    float pyramidVertices[] = {
+            // positions         // normals           // texture coords
+            1.0f,  0.0f,  0.0f,  1.0f,  0.0f,  0.0f,  0.0f,  0.0f,    //A
+            0.0f,  1.0f,  0.0f,  0.0f,  1.0f,  0.0f,  1.0f,  0.0f,    //B
+            -1.0f,  0.0f,  0.0f, -1.0f,  0.0f,  0.0f,  1.0f,  1.0f,    //C
+            0.0f, -1.0f,  0.0f,  0.0f, -1.0f,  0.0f,  0.0f,  1.0f,    //D
+            0.0f,  0.0f,  2.0f,  0.0f,  0.0f,  1.0f,  0.5f,  0.5f,	   //E
+    };
 
     unsigned int pyramidIndices[] = {
-            0, 1, 3,
-            1, 2, 3,
-            0, 1, 4,
-            0, 3, 4,
-            2, 3, 4,
-            1, 2, 4
+            0, 1, 3,	//ABD
+            1, 2, 3,	//BDC
+            0, 1, 4,	//ABE
+            0, 3, 4,	//ADE
+            2, 3, 4,	//CDE
+            1, 2, 4,	//BCE
     };
 
     unsigned int pyramidVAO, pyramidVBO, pyramidEBO;
@@ -181,7 +187,7 @@ int main() {
     glEnableVertexAttribArray(2);
 
     Texture2D woodTexture("resources/textures/table.jpg", 0);
-    Texture2D pyramidTexture("resources/textures/bricks2.jpg", 1);
+    Texture2D pyramidTexture("resources/textures/egypt_symbols.jpg", 1);
 
     glEnable(GL_DEPTH_TEST);
 
@@ -189,11 +195,9 @@ int main() {
     floorShader.setInt("material.specular", woodTexture.getTextureNumber());
 
     pyramidShader.use();
-    pyramidShader.setInt("pyramid.diffuse", pyramidTexture.getTextureNumber());
+    pyramidShader.setInt("material.diffuse", pyramidTexture.getTextureNumber());
 
     // tabletop cube definitions and light
-
-    Shader tableTopCubeShader("resources/shaders/tableTopCube.vs", "resources/shaders/tableTopCube.fs");
 
     unsigned int tableTopCubeVBO, tableTopCubeVAO;
     glGenVertexArrays(1, &tableTopCubeVAO);
@@ -210,8 +214,12 @@ int main() {
     glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
     glEnableVertexAttribArray(2);
 
-    Texture2D tableTopCubeTexture("resources/textures/red_brick.jpg", 2);
+    Texture2D tableTopCubeTexture("resources/textures/red_brick2.jpg", 2);
     Texture2D tableTopCubeTexture1("resources/textures/graffiti.jpeg", 3);
+
+    tableTopCubeShader.use();
+    tableTopCubeShader.setInt("material.diffuse", tableTopCubeTexture.getTextureNumber());
+//    tableTopCubeShader.setInt("material.specular", tableTopCubeTexture1.getTextureNumber());
 
     // light source cube
 
@@ -226,14 +234,15 @@ int main() {
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
 
-    tableTopCubeShader.use();
-    tableTopCubeShader.setInt("material.diffuse", tableTopCubeTexture.getTextureNumber());
-    tableTopCubeShader.setInt("material.specular", tableTopCubeTexture1.getTextureNumber());
-
     while (!glfwWindowShouldClose(window)) {
         float currentFrame = static_cast<float>(glfwGetTime());
         deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
+
+        // spinning cube
+
+        lightPos.x = 3*sin(currentFrame)+1;
+        lightPos.z = 3*cos(currentFrame)+1;
 
         processInput(window);
 
@@ -243,8 +252,7 @@ int main() {
         woodTexture.bind();
         pyramidTexture.bind();
         tableTopCubeTexture.bind();
-        tableTopCubeTexture1.bind();
-
+//        tableTopCubeTexture1.bind();
 
         glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
         glm::mat4 view = camera.GetViewMatrix();
@@ -252,19 +260,25 @@ int main() {
 
         // Floor setup.
         floorShader.use();
-        floorShader.setVec3("light.position", lightPos);
         floorShader.setVec3("viewPos", lightPos);
+        floorShader.setFloat("material.shininess", 18.0f);
 
         // light properties
-        floorShader.setVec3("light.ambient", 0.2f, 0.2f, 0.2f);
-        floorShader.setVec3("light.diffuse", 0.5f, 0.5f, 0.5f);
-        floorShader.setVec3("light.specular", 1.2f, 1.2f, 1.2f);
-        floorShader.setFloat("light.constant", 1.0f);
-        floorShader.setFloat("light.linear", 0.007f);
-        floorShader.setFloat("light.quadratic", 0.0002f);
 
-        // material properties
-        floorShader.setFloat("material.shininess", 64.0f);
+        // TODO: isto kao kod tableTopCube problem
+
+        floorShader.setVec3("dirLight.direction", 9.0f, 2.1f, 9.0f);
+        floorShader.setVec3("dirLight.ambient", 0.1f, 0.1f, 0.1f);
+        floorShader.setVec3("dirLight.diffuse", 0.4f, 0.4f, 0.4f);
+        floorShader.setVec3("dirLight.specular", 1.0f, 1.0f, 1.0f);
+
+        floorShader.setVec3("pointLight.position", lightPos);
+        floorShader.setVec3("pointLight.ambient", 0.1f, 0.1f, 0.1f);
+        floorShader.setVec3("pointLight.diffuse", 0.95f, 0.95f, 0.95f);
+        floorShader.setVec3("pointLight.specular", 0.5f, 0.5f, 0.5f);
+        floorShader.setFloat("pointLight.constant", 1.0f);
+        floorShader.setFloat("pointLight.linear", 0.22f);
+        floorShader.setFloat("pointLight.quadratic", 0.0009f);
 
         floorShader.setMat4("projection", projection);
         floorShader.setMat4("view", view);
@@ -310,69 +324,106 @@ int main() {
         glDrawArrays(GL_TRIANGLES, 0, 36);
 
         // Pyramid setup.
+
         pyramidShader.use();
+        pyramidShader.setVec3("viewPos", lightPos);
+        pyramidShader.setFloat("material.shininess", 1.0f);
+        pyramidShader.setInt("flashLight", flashLight);
 
-        //      Light setup.
-        pyramidShader.setVec3("light.position", lightPos);
-        pyramidShader.setVec3("viewPosition", lightPos);
+        // light properties
 
-        pyramidShader.setVec3("light.ambient", 0.1f, 0.1f, 0.05f);
-        pyramidShader.setVec3("light.diffuse", 0.5f, 0.5f, 0.5f);
-        pyramidShader.setVec3("light.specular", 1.2f, 1.2f, 1.2f);
+        // TODO: sta cemo sa direkcionim tj odakle? najverovatnije ce to biti kada dodamo cubemaps?
 
-        pyramidShader.setFloat("light.constant", 1.0f);
-        pyramidShader.setFloat("light.linear", 0.00014f);
-        pyramidShader.setFloat("light.quadratic", 0.000007f);
+        pyramidShader.setVec3("dirLight.direction", -9, 0.1f, 8.5f);
+        pyramidShader.setVec3("dirLight.ambient", 0.01f, 0.01f, 0.01f);
+        pyramidShader.setVec3("dirLight.diffuse", 0.4f, 0.4f, 0.4f);
+        pyramidShader.setVec3("dirLight.specular", 1.0f, 1.0f, 1.0f);
 
-        pyramidShader.setVec3("pyramid.specular", glm::vec3(0.0f));
-        pyramidShader.setFloat("pyramid.shininess", 4.0f);
+        pyramidShader.setVec3("pointLight.position", lightPos);
+        pyramidShader.setVec3("pointLight.ambient", 0.1f, 0.1f, 0.05f);
+        pyramidShader.setVec3("pointLight.diffuse", 1.0f, 1.0f, 1.0f);
+        pyramidShader.setVec3("pointLight.specular", 0.0f, 0.0f, 0.0f);
+        pyramidShader.setFloat("pointLight.constant", 1.0f);
+        pyramidShader.setFloat("pointLight.linear", 0.07f);
+        pyramidShader.setFloat("pointLight.quadratic", 0.00002f);
+
+        pyramidShader.setVec3("spotLight.position", camera.Position);
+        pyramidShader.setVec3("spotLight.direction", camera.Front);
+        pyramidShader.setVec3("spotLight.ambient", 0.0f, 0.0f, 0.0f);
+        pyramidShader.setVec3("spotLight.diffuse", 1.0f, 1.0f, 1.0f);
+        pyramidShader.setVec3("spotLight.specular", 0.8f, 0.8f, 0.8f);
+        pyramidShader.setFloat("spotLight.constant", 1.0f);
+        pyramidShader.setFloat("spotLight.linear", 0.007f);
+        pyramidShader.setFloat("spotLight.quadratic", 0.0002f);
+        pyramidShader.setFloat("spotLight.cutOff", glm::cos(glm::radians(12.5f)));
+        pyramidShader.setFloat("spotLight.outerCutOff", glm::cos(glm::radians(15.0f)));
+
 
         model = glm::mat4(1.0f);
         model = glm::translate(model, glm::vec3(-9, 0.1f, 8.5f));
-        model = glm::rotate(model, glm::radians(20.0f), glm::vec3(0.0f, 1.0, 0.0f));
-        model = glm::scale(model, glm::vec3(5.0f));
+        model = glm::rotate(model, glm::radians(90.0f), glm::vec3(-1.0f, 0.0, 0.0f));
+        model = glm::scale(model, glm::vec3(3.0f));
         pyramidShader.setMat4("model", model);
         pyramidShader.setMat4("projection", projection);
         pyramidShader.setMat4("view", view);
 
         glBindVertexArray(pyramidVAO);
-        glDrawElements( GL_TRIANGLES, 18, GL_UNSIGNED_INT, 0);
+        glDrawElements(GL_TRIANGLES, 18, GL_UNSIGNED_INT, 0);
 
         model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(-9, 0.1f, 4.3f));
-        model = glm::rotate(model, glm::radians(20.0f), glm::vec3(0.0f, 1.0, 0.0f));
-        model = glm::scale(model, glm::vec3(3.0f));
+        model = glm::translate(model, glm::vec3(-9, 0.1f, 3.0f));
+        model = glm::rotate(model, glm::radians(90.0f), glm::vec3(-1.0f, 0.0, 0.0f));
+        model = glm::scale(model, glm::vec3(2.5f));
         pyramidShader.setMat4("model", model);
 
         glBindVertexArray(pyramidVAO);
-        glDrawElements( GL_TRIANGLES, 18, GL_UNSIGNED_INT, 0);
+        glDrawElements(GL_TRIANGLES, 18, GL_UNSIGNED_INT, 0);
 
         model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(-6.7, 0.1f, 6));
-        model = glm::rotate(model, glm::radians(20.f), glm::vec3(0.0f, 1.0, 0.0f));
+        model = glm::translate(model, glm::vec3(-6.7, 0.1f, 5.3));
+        model = glm::rotate(model, glm::radians(90.0f), glm::vec3(-1.0f, 0.0, 0.0f));
+        model = glm::scale(model, glm::vec3(1.5f));
         pyramidShader.setMat4("model", model);
 
         glBindVertexArray(pyramidVAO);
-        glDrawElements( GL_TRIANGLES, 18, GL_UNSIGNED_INT, 0);
+        glDrawElements(GL_TRIANGLES, 18, GL_UNSIGNED_INT, 0);
 
         // Table top cubes
 
         tableTopCubeShader.use();
-        tableTopCubeShader.setVec3("light.position", lightPos);
         tableTopCubeShader.setVec3("viewPos", lightPos);
+        tableTopCubeShader.setFloat("material.shininess", 32.0f);
+        tableTopCubeShader.setInt("flashLight", flashLight);
 
         // light properties
-        tableTopCubeShader.setVec3("light.ambient", 0.2f, 0.2f, 0.2f);
-        tableTopCubeShader.setVec3("light.diffuse", 0.5f, 0.5f, 0.5f);
-        tableTopCubeShader.setVec3("light.specular", 1.2f, 1.2f, 1.2f);
-        tableTopCubeShader.setFloat("light.constant", 1.0f);
-        tableTopCubeShader.setFloat("light.linear", 0.007f);
-        tableTopCubeShader.setFloat("light.quadratic", 0.0002f);
 
+        // TODO: sta cemo sa direkcionim tj odakle? najverovatnije ce to biti kada dodamo cubemaps?
 
-        // material properties
-        tableTopCubeShader.setVec3("material.specular", 0.5f, 0.5f, 0.5f);
-        tableTopCubeShader.setFloat("material.shininess", 64.0f);
+        tableTopCubeShader.setVec3("dirLight.direction", 9.0f, 2.1f, 9.0f);
+        tableTopCubeShader.setVec3("dirLight.ambient", 0.01f, 0.01f, 0.01f);
+        tableTopCubeShader.setVec3("dirLight.diffuse", 0.4f, 0.4f, 0.4f);
+        tableTopCubeShader.setVec3("dirLight.specular", 1.0f, 1.0f, 1.0f);
+
+        tableTopCubeShader.setVec3("pointLight.position", lightPos);
+        tableTopCubeShader.setVec3("pointLight.ambient", 0.05f, 0.05f, 0.05f);
+        tableTopCubeShader.setVec3("pointLight.diffuse", 1.0f, 1.0f, 1.0f);
+        tableTopCubeShader.setVec3("pointLight.specular", 0.0f, 0.0f, 0.0f);
+        tableTopCubeShader.setFloat("pointLight.constant", 1.0f);
+        tableTopCubeShader.setFloat("pointLight.linear", 0.007f);
+        tableTopCubeShader.setFloat("pointLight.quadratic", 0.0002f);
+
+        tableTopCubeShader.setVec3("spotLight.position", camera.Position);
+        tableTopCubeShader.setVec3("spotLight.direction", camera.Front);
+        tableTopCubeShader.setVec3("spotLight.ambient", 0.0f, 0.0f, 0.0f);
+        tableTopCubeShader.setVec3("spotLight.diffuse", 1.0f, 1.0f, 1.0f);
+        tableTopCubeShader.setVec3("spotLight.specular", 1.2f, 1.2f, 1.2f);
+        tableTopCubeShader.setFloat("spotLight.constant", 1.0f);
+        tableTopCubeShader.setFloat("spotLight.linear", 0.007f);
+        tableTopCubeShader.setFloat("spotLight.quadratic", 0.0002f);
+        tableTopCubeShader.setFloat("spotLight.cutOff", glm::cos(glm::radians(12.5f)));
+        tableTopCubeShader.setFloat("spotLight.outerCutOff", glm::cos(glm::radians(15.0f)));
+
+        // cube 1
 
         model = glm::mat4(1.0f);
         model = glm::translate(model, glm::vec3(9.0f, 2.1f, 9.0f));
@@ -386,6 +437,8 @@ int main() {
         glBindVertexArray(tableTopCubeVAO);
         glDrawArrays(GL_TRIANGLES, 0, 36);
 
+        // cube 2
+
         model = glm::mat4(1.0f);
         model = glm::translate(model, glm::vec3(9.0f, 1.6f, 3.0f));
         model = glm::rotate(model, glm::radians(20.0f), glm::vec3(0.0, 1.0f, 0.0f));
@@ -397,6 +450,8 @@ int main() {
         glBindVertexArray(tableTopCubeVAO);
         glDrawArrays(GL_TRIANGLES, 0, 36);
 
+        // cube 3
+
         model = glm::mat4(1.0f);
         model = glm::translate(model, glm::vec3(5.5f, 1.1f, 6.0f));
         tableTopCubeShader.setMat4("model", model);
@@ -407,20 +462,57 @@ int main() {
         glDrawArrays(GL_TRIANGLES, 0, 36);
 
         // Model setup.
+
         objectShader.use();
-        objectShader.setVec3("light.position", lightPos);
-        objectShader.setVec3("viewPos", camera.Position);
+        objectShader.setVec3("viewPos", lightPos);
+        objectShader.setFloat("material.shininess", 18.0f);
+        objectShader.setInt("flashLight", flashLight);
 
-        objectShader.setVec3("light.ambient", glm::vec3(1.5f));
-        objectShader.setVec3("light.diffuse", 1.5f, 1.5f, 1.5f);
-        objectShader.setVec3("light.specular", 1.0f, 1.0f, 1.0f);
+        // light properties
 
-        objectShader.setFloat("light.constant", 1.0f);
-        objectShader.setFloat("light.linear", 0.09f);
-        objectShader.setFloat("light.quadratic", 0.032f);
+        // TODO: sta cemo sa direkcionim tj odakle? najverovatnije ce to biti kada dodamo cubemaps?
+
+        // takodje komentarisan deo za dirLight jer pravi 2 mala kruga na poledjini sfere
+        // i u objectShader.fs je ovaj deo koji racuna dirLight zakomentarisan u main-u
+
+        objectShader.setVec3("dirLight.direction", 9.0f, 2.1f, 9.0f);
+        objectShader.setVec3("dirLight.ambient", 0.01f, 0.01f, 0.01f);
+        objectShader.setVec3("dirLight.diffuse", 0.4f, 0.4f, 0.4f);
+        objectShader.setVec3("dirLight.specular", 1.0f, 1.0f, 1.0f);
+
+        objectShader.setVec3("pointLight.position", lightPos);
+        objectShader.setVec3("pointLight.ambient", 0.05f, 0.05f, 0.05f);
+        objectShader.setVec3("pointLight.diffuse", 1.0f, 1.0f, 1.0f);
+        objectShader.setVec3("pointLight.specular", 0.0f, 0.0f, 0.0f);
+        objectShader.setFloat("pointLight.constant", 1.0f);
+        objectShader.setFloat("pointLight.linear", 0.007f);
+        objectShader.setFloat("pointLight.quadratic", 0.0002f);
+
+        objectShader.setVec3("spotLight.position", camera.Position);
+        objectShader.setVec3("spotLight.direction", camera.Front);
+        objectShader.setVec3("spotLight.ambient", 0.0f, 0.0f, 0.0f);
+        objectShader.setVec3("spotLight.diffuse", 1.0f, 1.0f, 1.0f);
+        objectShader.setVec3("spotLight.specular", 1.2f, 1.2f, 1.2f);
+        objectShader.setFloat("spotLight.constant", 1.0f);
+        objectShader.setFloat("spotLight.linear", 0.007f);
+        objectShader.setFloat("spotLight.quadratic", 0.0002f);
+        objectShader.setFloat("spotLight.cutOff", glm::cos(glm::radians(12.5f)));
+        objectShader.setFloat("spotLight.outerCutOff", glm::cos(glm::radians(15.0f)));
+
+//        objectShader.use();
+//        objectShader.setVec3("light.position", lightPos);
+//        objectShader.setVec3("viewPos", camera.Position);
+//
+//        objectShader.setVec3("light.ambient", glm::vec3(1.5f));
+//        objectShader.setVec3("light.diffuse", 1.5f, 1.5f, 1.5f);
+//        objectShader.setVec3("light.specular", 1.0f, 1.0f, 1.0f);
+//
+//        objectShader.setFloat("light.constant", 1.0f);
+//        objectShader.setFloat("light.linear", 0.09f);
+//        objectShader.setFloat("light.quadratic", 0.032f);
 
         // material properties
-        objectShader.setFloat("material.shininess", 32.0f);
+//        objectShader.setFloat("material.shininess", 32.0f);
 
         objectShader.setMat4("projection", projection);
         objectShader.setMat4("view", view);
@@ -485,6 +577,16 @@ void processInput(GLFWwindow *window) {
         camera.MovementSpeed += 0.5f;
     if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
         camera.MovementSpeed -= 0.5f;
+
+    if (glfwGetKey(window, GLFW_KEY_F) == GLFW_PRESS && !flashLightKeyPressed)
+    {
+        flashLight = !flashLight;
+        flashLightKeyPressed = true;
+    }
+    if (glfwGetKey(window, GLFW_KEY_F) == GLFW_RELEASE)
+    {
+        flashLightKeyPressed = false;
+    }
 }
 
 // glfw: whenever the window size changed (by OS or user resize) this callback function executes

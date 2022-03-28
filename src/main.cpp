@@ -214,7 +214,7 @@ int main() {
     glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
     glEnableVertexAttribArray(2);
 
-    Texture2D tableTopCubeTexture("resources/textures/red_brick2.jpg", 2);
+    Texture2D tableTopCubeTexture("resources/textures/red_brick3.jpg", 2);
     Texture2D tableTopCubeTexture1("resources/textures/graffiti.jpeg", 3);
 
     tableTopCubeShader.use();
@@ -268,7 +268,7 @@ int main() {
         // TODO: isto kao kod tableTopCube problem
 
         floorShader.setVec3("dirLight.direction", 9.0f, 2.1f, 9.0f);
-        floorShader.setVec3("dirLight.ambient", 0.1f, 0.1f, 0.1f);
+        floorShader.setVec3("dirLight.ambient", glm::vec3(0.2));
         floorShader.setVec3("dirLight.diffuse", 0.4f, 0.4f, 0.4f);
         floorShader.setVec3("dirLight.specular", 1.0f, 1.0f, 1.0f);
 

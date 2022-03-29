@@ -17,7 +17,7 @@
 class Texture2D {
 public:
 
-    Texture(const std::vector<std::string> faces, GLint textureNum)
+    Texture2D(const std::vector<std::string> faces, GLint textureNum)
     {
         m_textureNumber = textureNum;
         glGenTextures(1, &m_textureId);

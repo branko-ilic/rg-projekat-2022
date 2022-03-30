@@ -41,6 +41,7 @@ float lastFrame = 0.0f;
 
 // lighting
 glm::vec3 lightPos = glm::vec3(0.0f, 10.0f, 0.0f);
+glm::vec3 dirPos = glm::vec3(-40.0f, 10.0f, -40.0f);
 
 int main() {
     // glfw: initialize and configure
@@ -374,7 +375,7 @@ int main() {
 
         // light properties
 
-        floorShader.setVec3("dirLight.direction", -40.0f, 10.0f, -40.0f);
+        floorShader.setVec3("dirLight.direction", glm::vec3(dirPos));
         floorShader.setVec3("dirLight.ambient", 0.1f, 0.1f, 0.1f);
         floorShader.setVec3("dirLight.diffuse", 0.55f, 0.55f, 0.55f);
         floorShader.setVec3("dirLight.specular", 0.0f, 0.0f, 0.0f);
@@ -464,7 +465,7 @@ int main() {
 
         // light properties
 
-        pyramidShader.setVec3("dirLight.direction", -40.0f, 10.0f, -40.0f);
+        pyramidShader.setVec3("dirLight.direction", glm::vec3(dirPos));
         pyramidShader.setVec3("dirLight.ambient", 0.1f, 0.1f, 0.1f);
         pyramidShader.setVec3("dirLight.diffuse", 0.2f, 0.2f, 0.2f);
         pyramidShader.setVec3("dirLight.specular", 0.0f, 0.0f, 0.0f);
@@ -529,7 +530,7 @@ int main() {
         // directional light comes from the window of the skybox
         // which is approximately (somewhere) behind the cubes, and is not as bright
 
-        tableTopCubeShader.setVec3("dirLight.direction", -40.0f, 10.0f, -40.0f);
+        tableTopCubeShader.setVec3("dirLight.direction", glm::vec3(dirPos));
         tableTopCubeShader.setVec3("dirLight.ambient", 0.1f, 0.1f, 0.1f);
         tableTopCubeShader.setVec3("dirLight.diffuse", 0.55f, 0.55f, 0.55f);
         tableTopCubeShader.setVec3("dirLight.specular", 0.0f, 0.0f, 0.0f);
@@ -600,7 +601,7 @@ int main() {
 
         // light properties
 
-        objectShader.setVec3("dirLight.direction", -40.0f, 10.0f, -40.0f);
+        objectShader.setVec3("dirLight.direction", glm::vec3(dirPos));
         objectShader.setVec3("dirLight.ambient", 0.1f, 0.1f, 0.1f);
         objectShader.setVec3("dirLight.diffuse", 0.2f, 0.2f, 0.2f);
         objectShader.setVec3("dirLight.specular", 0.0f, 0.0f, 0.0f);

@@ -84,6 +84,7 @@ int main() {
     Shader blendingShader("resources/shaders/blendingShader.vs", "resources/shaders/blendingShader.fs");
     Shader pyramidShader("resources/shaders/pyramid.vs", "resources/shaders/pyramid.fs");
     Shader objectShader("resources/shaders/objectShader.vs", "resources/shaders/objectShader.fs");
+    Shader skyboxShader("resources/shaders/skyboxShader.vs", "resources/shaders/skyboxShader.fs");
 
 //    stbi_set_flip_vertically_on_load(true);
 
@@ -219,11 +220,9 @@ int main() {
     glEnableVertexAttribArray(2);
 
     Texture2D tableTopCubeTexture("resources/textures/red_brick3.jpg", 2);
-    Texture2D tableTopCubeTexture1("resources/textures/graffiti.jpeg", 3);
 
     tableTopCubeShader.use();
     tableTopCubeShader.setInt("material.diffuse", tableTopCubeTexture.getTextureNumber());
-//    tableTopCubeShader.setInt("material.specular", tableTopCubeTexture1.getTextureNumber());
 
     // transparent vertices
 
@@ -251,7 +250,7 @@ int main() {
     glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
     glEnableVertexAttribArray(1);
 
-    Texture2D transparentTexture("resources/textures/crack.png", 4);
+    Texture2D transparentTexture("resources/textures/crack.png", 3);
 
     blendingShader.use();
     blendingShader.setInt("texture1", transparentTexture.getTextureNumber());
@@ -268,6 +267,76 @@ int main() {
     // note that we update the lamp's position attribute's stride to reflect the updated buffer data
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
+
+    // skybox setup
+
+    float skyboxVertices[] = {
+            // positions
+            -1.0f,  1.0f, -1.0f,
+            -1.0f, -1.0f, -1.0f,
+            1.0f, -1.0f, -1.0f,
+            1.0f, -1.0f, -1.0f,
+            1.0f,  1.0f, -1.0f,
+            -1.0f,  1.0f, -1.0f,
+
+            -1.0f, -1.0f,  1.0f,
+            -1.0f, -1.0f, -1.0f,
+            -1.0f,  1.0f, -1.0f,
+            -1.0f,  1.0f, -1.0f,
+            -1.0f,  1.0f,  1.0f,
+            -1.0f, -1.0f,  1.0f,
+
+            1.0f, -1.0f, -1.0f,
+            1.0f, -1.0f,  1.0f,
+            1.0f,  1.0f,  1.0f,
+            1.0f,  1.0f,  1.0f,
+            1.0f,  1.0f, -1.0f,
+            1.0f, -1.0f, -1.0f,
+
+            -1.0f, -1.0f,  1.0f,
+            -1.0f,  1.0f,  1.0f,
+            1.0f,  1.0f,  1.0f,
+            1.0f,  1.0f,  1.0f,
+            1.0f, -1.0f,  1.0f,
+            -1.0f, -1.0f,  1.0f,
+
+            -1.0f,  1.0f, -1.0f,
+            1.0f,  1.0f, -1.0f,
+            1.0f,  1.0f,  1.0f,
+            1.0f,  1.0f,  1.0f,
+            -1.0f,  1.0f,  1.0f,
+            -1.0f,  1.0f, -1.0f,
+
+            -1.0f, -1.0f, -1.0f,
+            -1.0f, -1.0f,  1.0f,
+            1.0f, -1.0f, -1.0f,
+            1.0f, -1.0f, -1.0f,
+            -1.0f, -1.0f,  1.0f,
+            1.0f, -1.0f,  1.0f
+    };
+
+    unsigned int skyboxVAO, skyboxVBO;
+    glGenVertexArrays(1, &skyboxVAO);
+    glGenBuffers(1, &skyboxVBO);
+    glBindVertexArray(skyboxVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, skyboxVBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(skyboxVertices), &skyboxVertices, GL_STATIC_DRAW);
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+
+    vector<std::string> skyboxSides = {
+            FileSystem::getPath("resources/textures/skyboxTextures/right.png"), // 0
+            FileSystem::getPath("resources/textures/skyboxTextures/left.png"),  // 1
+            FileSystem::getPath("resources/textures/skyboxTextures/top.png"),  // 2
+            FileSystem::getPath("resources/textures/skyboxTextures/bottom.png"),  // 3
+            FileSystem::getPath("resources/textures/skyboxTextures/front.png"),  // 4
+            FileSystem::getPath("resources/textures/skyboxTextures/back.png") // 5
+    };
+
+    Texture2D skyboxTexture(skyboxSides, 4);
+
+    skyboxShader.use();
+    skyboxShader.setInt("skybox", skyboxTexture.getTextureNumber());
 
     while (!glfwWindowShouldClose(window)) {
         float currentFrame = static_cast<float>(glfwGetTime());
@@ -288,7 +357,7 @@ int main() {
         pyramidTexture.bind();
         tableTopCubeTexture.bind();
         transparentTexture.bind();
-//        tableTopCubeTexture1.bind();
+        skyboxTexture.bindCubemap();
 
         glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
         glm::mat4 view = camera.GetViewMatrix();
@@ -297,7 +366,8 @@ int main() {
         // Floor setup.
         floorShader.use();
         floorShader.setVec3("viewPos", lightPos);
-        floorShader.setFloat("material.shininess", 18.0f);
+        floorShader.setFloat("material.shininess", 7.0f);
+        floorShader.setInt("flashLight", flashLight); // da ili ne?
 
         // light properties
 
@@ -315,6 +385,17 @@ int main() {
         floorShader.setFloat("pointLight.constant", 1.0f);
         floorShader.setFloat("pointLight.linear", 0.22f);
         floorShader.setFloat("pointLight.quadratic", 0.0009f);
+
+        floorShader.setVec3("spotLight.position", camera.Position);
+        floorShader.setVec3("spotLight.direction", camera.Front);
+        floorShader.setVec3("spotLight.ambient", 0.0f, 0.0f, 0.0f);
+        floorShader.setVec3("spotLight.diffuse", 1.0f, 1.0f, 1.0f);
+        floorShader.setVec3("spotLight.specular", 0.8f, 0.8f, 0.8f);
+        floorShader.setFloat("spotLight.constant", 1.0f);
+        floorShader.setFloat("spotLight.linear", 0.007f);
+        floorShader.setFloat("spotLight.quadratic", 0.0002f);
+        floorShader.setFloat("spotLight.cutOff", glm::cos(glm::radians(12.5f)));
+        floorShader.setFloat("spotLight.outerCutOff", glm::cos(glm::radians(15.0f)));
 
         floorShader.setMat4("projection", projection);
         floorShader.setMat4("view", view);
@@ -407,7 +488,6 @@ int main() {
         pyramidShader.setFloat("spotLight.quadratic", 0.0002f);
         pyramidShader.setFloat("spotLight.cutOff", glm::cos(glm::radians(12.5f)));
         pyramidShader.setFloat("spotLight.outerCutOff", glm::cos(glm::radians(15.0f)));
-
 
         model = glm::mat4(1.0f);
         model = glm::translate(model, glm::vec3(-9, 0.1f, 8.5f));
@@ -570,6 +650,20 @@ int main() {
         glBindVertexArray(lightCubeVAO);
         glDrawArrays(GL_TRIANGLES, 0, 36);
 
+        // skybox
+
+        glDepthFunc(GL_LEQUAL);  // change depth function so depth test passes when values are equal to depth buffer's content
+        skyboxShader.use();
+        view = glm::mat4(glm::mat3(camera.GetViewMatrix())); // remove translation from the view matrix
+        skyboxShader.setMat4("view", view);
+        skyboxShader.setMat4("projection", projection);
+
+        // render skybox cube
+        glBindVertexArray(skyboxVAO);
+        glDrawArrays(GL_TRIANGLES, 0, 36);
+        glBindVertexArray(0);
+        glDepthFunc(GL_LESS); // set depth function back to default
+
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
@@ -587,6 +681,9 @@ int main() {
 
     glDeleteBuffers(1, &transparentVBO);
     glDeleteVertexArrays(1, &transparentVAO);
+
+    glDeleteVertexArrays(1, &skyboxVAO);
+    glDeleteBuffers(1, &skyboxVBO);
 
     glfwTerminate();
     return 0;
@@ -649,6 +746,10 @@ void mouse_callback(GLFWwindow *window, double xpos, double ypos) {
 
     lastX = xpos;
     lastY = ypos;
+
+    float sensitivity = 0.01f; // change this value to your liking
+    xoffset *= sensitivity;
+    yoffset *= sensitivity;
 
     camera.ProcessMouseMovement(xoffset, yoffset);
 }

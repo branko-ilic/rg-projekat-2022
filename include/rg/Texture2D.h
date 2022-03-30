@@ -22,9 +22,9 @@ public:
         m_textureNumber = textureNum;
         glGenTextures(1, &m_textureId);
         glBindTexture(GL_TEXTURE_CUBE_MAP, m_textureId);
-
         int width, height, nrComponents;
         for (unsigned int i = 0; i < faces.size(); i++) {
+            stbi_set_flip_vertically_on_load(true);
             unsigned char *data = stbi_load(faces[i].c_str(), &width, &height, &nrComponents, 0);
             if (data) {
                 glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
@@ -56,7 +56,6 @@ public:
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
         int width, height, nrChannels;
-        stbi_set_flip_vertically_on_load(true);
         unsigned char *data = stbi_load(pathToTexture, &width, &height, &nrChannels, 0);
         if (data) {
 
@@ -91,6 +90,12 @@ public:
     {
         glActiveTexture(GL_TEXTURE0 + m_textureNumber);
         glBindTexture(GL_TEXTURE_2D, m_textureId);
+    }
+
+    void bindCubemap() const
+    {
+        glActiveTexture(GL_TEXTURE0 + m_textureNumber);
+        glBindTexture(GL_TEXTURE_CUBE_MAP, m_textureId);
     }
 
 private:

@@ -28,7 +28,7 @@ bool flashLight = false;
 bool flashLightKeyPressed = false;
 bool bloomKeyPressed = false;
 bool bloom = false;
-float exposure = 1.0f;
+float exposure = 0.35f; // tweak this
 
 // camera
 //Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
@@ -85,22 +85,23 @@ int main() {
     glEnable(GL_MULTISAMPLE);
     glEnable(GL_CULL_FACE);
 
-    Shader floorShader("resources/shaders/cube.vs", "resources/shaders/cube.fs");
+    Shader floorShader("resources/shaders/uniformLightShader.vs", "resources/shaders/uniformLightShader.fs");
     Shader blendingShader("resources/shaders/blendingShader.vs", "resources/shaders/blendingShader.fs");
-    Shader pyramidShader("resources/shaders/pyramid.vs", "resources/shaders/pyramid.fs");
-    Shader objectShader("resources/shaders/objectShader.vs", "resources/shaders/objectShader.fs");
+    Shader pyramidShader("resources/shaders/uniformLightShader.vs", "resources/shaders/uniformLightShader.fs");
+    Shader objectShader("resources/shaders/uniformLightShader.vs", "resources/shaders/uniformLightShader.fs");
+    Shader tableTopCubeShader("resources/shaders/uniformLightShader.vs", "resources/shaders/uniformLightShader.fs");
+
     Shader skyboxShader("resources/shaders/skyboxShader.vs", "resources/shaders/skyboxShader.fs");
     Shader lightCubeShader("resources/shaders/lightcube.vs", "resources/shaders/lightcube.fs");
 
     Shader shaderBlur("resources/shaders/bloomShaders/blur.vs", "resources/shaders/bloomShaders/blur.fs");
     Shader shaderBloomFinal("resources/shaders/bloomShaders/bloom.vs", "resources/shaders/bloomShaders/bloom.fs");
 
-//    stbi_set_flip_vertically_on_load(true);
+    Model plant(FileSystem::getPath("resources/objects/plant/plant-1.obj"), true);
+    plant.SetShaderTextureNamePrefix("material.");
 
-    Model sphere(FileSystem::getPath("resources/objects/xxr-sphere/XXR_B_BLOODSTONE_002.obj"));
+    Model sphere(FileSystem::getPath("resources/objects/xxr-sphere/XXR_B_BLOODSTONE_002.obj"), true);
     sphere.SetShaderTextureNamePrefix("material.");
-
-    Shader tableTopCubeShader("resources/shaders/tableTopCube.vs", "resources/shaders/tableTopCube.fs");
 
     //Bloom-------------------------------------------------------------------------------------------------------------
     // configure framebuffers
@@ -701,6 +702,8 @@ int main() {
         objectShader.setFloat("spotLight.cutOff", glm::cos(glm::radians(12.5f)));
         objectShader.setFloat("spotLight.outerCutOff", glm::cos(glm::radians(15.0f)));
 
+        // sphere model
+
         objectShader.setMat4("projection", projection);
         objectShader.setMat4("view", view);
         model = glm::mat4(1.0f);
@@ -708,6 +711,14 @@ int main() {
         model = glm::scale(model, glm::vec3(1.8f));
         objectShader.setMat4("model", model);
         sphere.Draw(objectShader);
+
+        // plant model
+
+        model = glm::mat4(1.0f);
+        model = glm::translate(model, glm::vec3(9.0f, 3.0f, -9.0f));
+        model = glm::scale(model, glm::vec3(13.0f));
+        objectShader.setMat4("model", model);
+        plant.Draw(objectShader);
 
         // Lighting cube defining
 
@@ -742,7 +753,7 @@ int main() {
         // blur bright fragments with two-pass Gaussian Blur
         // --------------------------------------------------
         bool horizontal = true, first_iteration = true;
-        unsigned int amount = 5;
+        unsigned int amount = 15;
         shaderBlur.use();
         for (unsigned int i = 0; i < amount; i++)
         {
@@ -863,7 +874,7 @@ void processInput(GLFWwindow *window) {
         bloom = !bloom;
         bloomKeyPressed = true;
     }
-    if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_RELEASE)
+    if (glfwGetKey(window, GLFW_KEY_B) == GLFW_RELEASE)
     {
         bloomKeyPressed = false;
     }
@@ -871,13 +882,13 @@ void processInput(GLFWwindow *window) {
     if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
     {
         if (exposure > 0.0f)
-            exposure -= 0.001f;
+            exposure -= 0.1f;
         else
             exposure = 0.0f;
     }
     else if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
     {
-        exposure += 0.001f;
+        exposure += 0.1f;
     }
 }
 

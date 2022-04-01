@@ -88,7 +88,7 @@ int main() {
     Shader floorShader("resources/shaders/uniformLightShader.vs", "resources/shaders/uniformLightShader.fs");
     Shader blendingShader("resources/shaders/blendingShader.vs", "resources/shaders/blendingShader.fs");
     Shader pyramidShader("resources/shaders/uniformLightShader.vs", "resources/shaders/uniformLightShader.fs");
-    Shader objectShader("resources/shaders/uniformLightShader.vs", "resources/shaders/uniformLightShader.fs");
+    Shader objectShader("resources/shaders/objectShader.vs", "resources/shaders/objectShader.fs");
     Shader tableTopCubeShader("resources/shaders/uniformLightShader.vs", "resources/shaders/uniformLightShader.fs");
 
     Shader skyboxShader("resources/shaders/skyboxShader.vs", "resources/shaders/skyboxShader.fs");
@@ -874,7 +874,7 @@ void processInput(GLFWwindow *window) {
         bloom = !bloom;
         bloomKeyPressed = true;
     }
-    if (glfwGetKey(window, GLFW_KEY_B) == GLFW_RELEASE)
+    if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_RELEASE)
     {
         bloomKeyPressed = false;
     }

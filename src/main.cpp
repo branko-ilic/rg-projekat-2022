@@ -19,6 +19,7 @@ void mouse_callback(GLFWwindow *window, double xpos, double ypos);
 void scroll_callback(GLFWwindow *window, double xoffset, double yoffset);
 void processInput(GLFWwindow *window);
 void key_callback(GLFWwindow *window, int key, int scancode, int action, int mods);
+void renderQuad();
 
 // settings
 const unsigned int SCR_WIDTH = 1920;
@@ -68,7 +69,7 @@ int main() {
     glfwSetScrollCallback(window, scroll_callback);
     glfwSetKeyCallback(window, key_callback);
     // tell GLFW to capture our mouse
-    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 
     // glad: load all OpenGL function pointers
     // ---------------------------------------
@@ -98,18 +99,6 @@ int main() {
     sphere.SetShaderTextureNamePrefix("material.");
 
     Shader tableTopCubeShader("resources/shaders/tableTopCube.vs", "resources/shaders/tableTopCube.fs");
-
-//    Model backpack(FileSystem::getPath("resources/objects/backpack/backpack.obj"));
-//    std::vector<glm::vec3> objectPositions;
-//    objectPositions.push_back(glm::vec3(-3.0,  -0.5, -3.0));
-//    objectPositions.push_back(glm::vec3( 0.0,  -0.5, -3.0));
-//    objectPositions.push_back(glm::vec3( 3.0,  -0.5, -3.0));
-//    objectPositions.push_back(glm::vec3(-3.0,  -0.5,  0.0));
-//    objectPositions.push_back(glm::vec3( 0.0,  -0.5,  0.0));
-//    objectPositions.push_back(glm::vec3( 3.0,  -0.5,  0.0));
-//    objectPositions.push_back(glm::vec3(-3.0,  -0.5,  3.0));
-//    objectPositions.push_back(glm::vec3( 0.0,  -0.5,  3.0));
-//    objectPositions.push_back(glm::vec3( 3.0,  -0.5,  3.0));
 
     float vertices[] = {
             // back face
@@ -329,33 +318,6 @@ int main() {
     glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
     glEnableVertexAttribArray(1);
 
-
-    Texture2D woodTexture("resources/textures/table.jpg", 0);
-    Texture2D pyramidTexture("resources/textures/bricks2.jpg", 1);
-    Texture2D tableTopCubeTexture("resources/textures/red_brick3.jpg", 2);
-    Texture2D transparentTexture("resources/textures/crack.png", 3);
-    Texture2D skyboxTexture(skyboxSides, 4);
-
-    skyboxShader.use();
-    skyboxShader.setInt("skybox", skyboxTexture.getTextureNumber());
-
-    floorShader.use();
-    floorShader.setInt("material.specular", woodTexture.getTextureNumber());
-
-    pyramidShader.use();
-    pyramidShader.setInt("material.diffuse", pyramidTexture.getTextureNumber());
-
-
-    tableTopCubeShader.use();
-    tableTopCubeShader.setInt("material.diffuse", tableTopCubeTexture.getTextureNumber());
-
-
-    blendingShader.use();
-    blendingShader.setInt("texture1", transparentTexture.getTextureNumber());
-
-    // light source cube
-
-
     // TODO: configure g-buffer framebuffer
     //-------------------------------------
     unsigned int gBuffer;
@@ -403,9 +365,29 @@ int main() {
         std::cerr << "Framebuffer not complete!\n";
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    // zavrsili kreiranje framebuffer-a
-    //---------------------------------
 
+    Texture2D woodTexture("resources/textures/table.jpg", 3);
+    Texture2D pyramidTexture("resources/textures/bricks2.jpg", 4);
+    Texture2D tableTopCubeTexture("resources/textures/red_brick3.jpg", 5);
+    Texture2D transparentTexture("resources/textures/crack.png", 6);
+    Texture2D skyboxTexture(skyboxSides, 7);
+
+    skyboxShader.use();
+    skyboxShader.setInt("skybox", skyboxTexture.getTextureNumber());
+
+    floorShader.use();
+    floorShader.setInt("material.specular", woodTexture.getTextureNumber());
+
+    pyramidShader.use();
+    pyramidShader.setInt("material.diffuse", pyramidTexture.getTextureNumber());
+
+
+    tableTopCubeShader.use();
+    tableTopCubeShader.setInt("material.diffuse", tableTopCubeTexture.getTextureNumber());
+
+
+    blendingShader.use();
+    blendingShader.setInt("texture1", transparentTexture.getTextureNumber());
 
 
     // TODO: shader configuration
@@ -423,26 +405,27 @@ int main() {
         deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
 
+        processInput(window);
+
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
-        glm::mat4 view = camera.GetViewMatrix();
-        glm::mat4 model = glm::mat4(1.0f);
 
         // 1. geometry pass: render scene's geometry/color data into gbuffer
         // -----------------------------------------------------------------
         glBindFramebuffer(GL_FRAMEBUFFER, gBuffer);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        geometryPassShader.use();
-        geometryPassShader.setMat4("projection", projection);
-        geometryPassShader.setMat4("view", view);
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+            glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
+            glm::mat4 view = camera.GetViewMatrix();
+            glm::mat4 model = glm::mat4(1.0f);
+            geometryPassShader.use();
+            geometryPassShader.setMat4("projection", projection);
+            geometryPassShader.setMat4("view", view);
 
-        model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(-7.0f, -1.0f, -2.0f));
-        model = glm::scale(model, glm::vec3(1.8f));
-        geometryPassShader.setMat4("model", model);
-        sphere.Draw(geometryPassShader);
-
+            model = glm::mat4(1.0f);
+            model = glm::translate(model, glm::vec3(-7.0f, -1.0f, -2.0f));
+            model = glm::scale(model, glm::vec3(1.8f));
+            geometryPassShader.setMat4("model", model);
+            sphere.Draw(geometryPassShader);
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
         // 2. lighting pass: calculate lighting by iterating over a screen filled quad pixel-by-pixel using the gbuffer's content.
@@ -465,17 +448,7 @@ int main() {
             lightingPassShader.setFloat("lights[0].Quadratic", quadratic);
         lightingPassShader.setVec3("viewPos", camera.Position);
         // finally render quad
-        lightingPassShader.setMat4("projection", projection);
-        lightingPassShader.setMat4("view", view);
-        model = glm::mat4(1.0f);
-        model = glm::translate(model, lightPos);
-        model = glm::scale(model, glm::vec3(1.5f));
-        lightingPassShader.setMat4("model", model);
-
-        glBindVertexArray(lightCubeVAO);
-        glDrawArrays(GL_TRIANGLES, 0, 36);
-
-//        renderQuad();
+        renderQuad();
 
         // 2.5. copy content of geometry's depth buffer to default framebuffer's depth buffer
         // ----------------------------------------------------------------------------------
@@ -487,30 +460,8 @@ int main() {
         glBlitFramebuffer(0, 0, SCR_WIDTH, SCR_HEIGHT, 0, 0, SCR_WIDTH, SCR_HEIGHT, GL_DEPTH_BUFFER_BIT, GL_NEAREST);
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-        // 3. render lights on top of scene
-        // --------------------------------
-//        lightCubeShader.use();
-//        lightCubeShader.setMat4("projection", projection);
-//        lightCubeShader.setMat4("projection", projection);
-//        for (unsigned int i = 0; i < lightPositions.size(); i++)
-//        {
-//            model = glm::mat4(1.0f);
-//            model = glm::translate(model, lightPositions[i]);
-//            model = glm::scale(model, glm::vec3(0.125f));
-//            lightCubeShader.setMat4("model", model);
-//            shaderLightBox.setVec3("lightColor", lightColors[i]);
-//            renderCube();
-//        }
-
-        // spinning cube
-        // the following two lines are commented out, but can be uncommented
-        // if you wish to see how the constant changing of the light position
-        // affects the lighting on objects
-
-        lightPos.x = 5*sin(currentFrame)+1;
-        lightPos.z = 5*cos(currentFrame)+1;
-
-        processInput(window);
+        glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         woodTexture.bind();
         pyramidTexture.bind();
@@ -518,61 +469,20 @@ int main() {
         transparentTexture.bind();
         skyboxTexture.bindCubemap();
 
-        glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        lightCubeShader.use();
+        lightCubeShader.setMat4("projection", projection);
+        lightCubeShader.setMat4("view", view);
+        model = glm::mat4(1.0f);
+        model = glm::translate(model, lightPos);
+        model = glm::scale(model, glm::vec3(1.5f));
+        lightCubeShader.setMat4("model", model);
 
+        glBindVertexArray(lightCubeVAO);
+        glDrawArrays(GL_TRIANGLES, 0, 36);
 
-        /*
-        // TODO: 1. Geometry pass:
-        //------------------------
-        glBindFramebuffer(GL_FRAMEBUFFER, gBuffer);
-            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-            glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
-            glm::mat4 view = camera.GetViewMatrix();
-            glm::mat4 model = glm::mat4(1.0f);
+        lightPos.x = 5*sin(currentFrame)+1;
+        lightPos.z = 5*cos(currentFrame)+1;
 
-            geometryPassShader.use();
-            geometryPassShader.setMat4("projection", projection);
-            geometryPassShader.setMat4("view", view);
-            geometryPassShader.setMat4("model", model);
-
-            model = glm::mat4(1.0f);
-            model = glm::translate(model, glm::vec3(-7.0f, -1.0f, -2.0f));
-            model = glm::scale(model, glm::vec3(1.8f));
-            geometryPassShader.setMat4("model", model);
-            sphere.Draw(geometryPassShader);
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-        // TODO: 2. Light pass:
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        lightingPassShader.use();
-        glActiveTexture(GL_TEXTURE5);
-        glBindTexture(GL_TEXTURE_2D, gPosition);
-        glActiveTexture(GL_TEXTURE6);
-        glBindTexture(GL_TEXTURE_2D, gNormal);
-        glActiveTexture(GL_TEXTURE7);
-        glBindTexture(GL_TEXTURE_2D, gAlbedoSpec);
-
-        // send light relevent uniforms
-        lightingPassShader.setVec3("lights[0].Position", lightPos);
-        lightingPassShader.setVec3("lights[0].Color", glm::vec3(1.0f));
-        const float linear = 0.7;
-        const float quadratic = 1.8;
-        lightingPassShader.setFloat("lights[0].Linear", linear);
-        lightingPassShader.setFloat("lights[0].Quadratic", quadratic);
-        lightingPassShader.setVec3("viewPos", lightPos);
-
-        // finally render quadz (izvor svetlosti??)
-
-        // TODO: 2.5. copy content of geometry's depth buffer to default framebuffer's depth buffer
-        //-----------------------------------------------------------------------------------------
-        glBindFramebuffer(GL_READ_FRAMEBUFFER, gBuffer);
-        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
-        glBlitFramebuffer(0, 0, SCR_WIDTH, SCR_HEIGHT, 0, 0, SCR_WIDTH, SCR_HEIGHT, GL_DEPTH_BUFFER_BIT, GL_NEAREST);
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-        // TODO: 3. Render everything else: froward rendering
-         */
 
 
 
@@ -945,4 +855,35 @@ void scroll_callback(GLFWwindow *window, double xoffset, double yoffset) {
 
 
 void key_callback(GLFWwindow *window, int key, int scancode, int action, int mods) {
+}
+
+// renderQuad() renders a 1x1 XY quad in NDC
+// -----------------------------------------
+unsigned int quadVAO = 0;
+unsigned int quadVBO;
+void renderQuad()
+{
+    if (quadVAO == 0)
+    {
+        float quadVertices[] = {
+                // positions        // texture Coords
+                -1.0f,  1.0f, 0.0f, 0.0f, 1.0f,
+                -1.0f, -1.0f, 0.0f, 0.0f, 0.0f,
+                1.0f,  1.0f, 0.0f, 1.0f, 1.0f,
+                1.0f, -1.0f, 0.0f, 1.0f, 0.0f,
+        };
+        // setup plane VAO
+        glGenVertexArrays(1, &quadVAO);
+        glGenBuffers(1, &quadVBO);
+        glBindVertexArray(quadVAO);
+        glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), &quadVertices, GL_STATIC_DRAW);
+        glEnableVertexAttribArray(0);
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+        glEnableVertexAttribArray(1);
+        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
+    }
+    glBindVertexArray(quadVAO);
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+    glBindVertexArray(0);
 }

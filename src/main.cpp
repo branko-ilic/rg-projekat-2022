@@ -51,7 +51,7 @@ int main() {
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-    glfwWindowHint(GLFW_SAMPLES, 4);
+    //glfwWindowHint(GLFW_SAMPLES, 4);
 
     // glfw window creation
     // --------------------
@@ -68,7 +68,7 @@ int main() {
     glfwSetScrollCallback(window, scroll_callback);
     glfwSetKeyCallback(window, key_callback);
     // tell GLFW to capture our mouse
-    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
     // glad: load all OpenGL function pointers
     // ---------------------------------------
@@ -78,7 +78,7 @@ int main() {
     }
 
     glEnable(GL_DEPTH_TEST);
-    glEnable(GL_MULTISAMPLE);
+    //glEnable(GL_MULTISAMPLE);
     glEnable(GL_CULL_FACE);
 
     Shader floorShader("resources/shaders/cube.vs", "resources/shaders/cube.fs");
@@ -86,6 +86,11 @@ int main() {
     Shader pyramidShader("resources/shaders/pyramid.vs", "resources/shaders/pyramid.fs");
     Shader objectShader("resources/shaders/objectShader.vs", "resources/shaders/objectShader.fs");
     Shader skyboxShader("resources/shaders/skyboxShader.vs", "resources/shaders/skyboxShader.fs");
+    Shader lightCubeShader("resources/shaders/lightcube.vs", "resources/shaders/lightcube.fs");
+
+    // Deferred Shading
+    Shader geometryPassShader("resources/shaders/gBuffer.vs", "resources/shaders/gBuffer.fs");
+    Shader lightingPassShader("resources/shaders/deferredShading.vs", "resources/shaders/deferredShading.fs");
 
 //    stbi_set_flip_vertically_on_load(true);
 
@@ -93,6 +98,18 @@ int main() {
     sphere.SetShaderTextureNamePrefix("material.");
 
     Shader tableTopCubeShader("resources/shaders/tableTopCube.vs", "resources/shaders/tableTopCube.fs");
+
+//    Model backpack(FileSystem::getPath("resources/objects/backpack/backpack.obj"));
+//    std::vector<glm::vec3> objectPositions;
+//    objectPositions.push_back(glm::vec3(-3.0,  -0.5, -3.0));
+//    objectPositions.push_back(glm::vec3( 0.0,  -0.5, -3.0));
+//    objectPositions.push_back(glm::vec3( 3.0,  -0.5, -3.0));
+//    objectPositions.push_back(glm::vec3(-3.0,  -0.5,  0.0));
+//    objectPositions.push_back(glm::vec3( 0.0,  -0.5,  0.0));
+//    objectPositions.push_back(glm::vec3( 3.0,  -0.5,  0.0));
+//    objectPositions.push_back(glm::vec3(-3.0,  -0.5,  3.0));
+//    objectPositions.push_back(glm::vec3( 0.0,  -0.5,  3.0));
+//    objectPositions.push_back(glm::vec3( 3.0,  -0.5,  3.0));
 
     float vertices[] = {
             // back face
@@ -139,21 +156,6 @@ int main() {
             -1.0f,  1.0f,  1.0f,  0.0f,  1.0f,  0.0f, 0.0f, 0.0f  // bottom-left
     };
 
-    unsigned int cubeVAO, cubeVBO;
-    glGenVertexArrays(1, &cubeVAO);
-    glGenBuffers(1, &cubeVBO);
-
-    glBindBuffer(GL_ARRAY_BUFFER, cubeVBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-    glBindVertexArray(cubeVAO);
-
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void *)0);
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void *)(3 * sizeof(float)));
-    glEnableVertexAttribArray(1);
-    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void *)(6 * sizeof(float)));
-    glEnableVertexAttribArray(2);
-
     // pyramid coordinates
     float pyramidVertices[] = {
             // positions         // normals           // texture coords
@@ -172,104 +174,6 @@ int main() {
             2, 3, 4,
             1, 2, 4
     };
-
-    unsigned int pyramidVAO, pyramidVBO, pyramidEBO;
-    glGenVertexArrays(1, &pyramidVAO);
-    glGenBuffers(1, &pyramidVBO);
-    glGenBuffers(1, &pyramidEBO);
-
-    glBindVertexArray(pyramidVAO);
-    glBindBuffer(GL_ARRAY_BUFFER, pyramidVBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(pyramidVertices), pyramidVertices, GL_STATIC_DRAW);
-
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, pyramidEBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(pyramidIndices), pyramidIndices, GL_STATIC_DRAW);
-
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void *)0);
-    glEnableVertexAttribArray(0);
-
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void *)(3 * sizeof(float)));
-    glEnableVertexAttribArray(1);
-
-    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void *)(6 * sizeof(float)));
-    glEnableVertexAttribArray(2);
-
-    Texture2D woodTexture("resources/textures/table.jpg", 0);
-    Texture2D pyramidTexture("resources/textures/bricks2.jpg", 1);
-
-    floorShader.use();
-    floorShader.setInt("material.specular", woodTexture.getTextureNumber());
-
-    pyramidShader.use();
-    pyramidShader.setInt("material.diffuse", pyramidTexture.getTextureNumber());
-
-    // tabletop cube definitions and light
-
-    unsigned int tableTopCubeVBO, tableTopCubeVAO;
-    glGenVertexArrays(1, &tableTopCubeVAO);
-    glGenBuffers(1, &tableTopCubeVBO);
-
-    glBindBuffer(GL_ARRAY_BUFFER, tableTopCubeVBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-
-    glBindVertexArray(tableTopCubeVAO);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
-    glEnableVertexAttribArray(1);
-    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
-    glEnableVertexAttribArray(2);
-
-    Texture2D tableTopCubeTexture("resources/textures/red_brick3.jpg", 2);
-
-    tableTopCubeShader.use();
-    tableTopCubeShader.setInt("material.diffuse", tableTopCubeTexture.getTextureNumber());
-
-    // transparent vertices
-
-    float transparentVertices[] = {
-            // positions         // texture Coords (swapped y coordinates because texture is flipped upside down)
-            0.0f,  0.5f,  0.0f,  0.0f,  0.0f,
-            1.0f, -0.5f,  0.0f,  1.0f,  1.0f,
-            0.0f, -0.5f,  0.0f,  0.0f,  1.0f,
-
-            0.0f,  0.5f,  0.0f,  0.0f,  0.0f,
-            1.0f,  0.5f,  0.0f,  1.0f,  1.0f,
-            1.0f, -0.5f,  0.0f,  1.0f,  0.0f
-    };
-
-    unsigned int transparentVAO, transparentVBO;
-    glGenVertexArrays(1, &transparentVAO);
-    glGenBuffers(1, &transparentVBO);
-
-    glBindBuffer(GL_ARRAY_BUFFER, transparentVBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(transparentVertices), transparentVertices, GL_STATIC_DRAW);
-
-    glBindVertexArray(transparentVAO);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
-    glEnableVertexAttribArray(1);
-
-    Texture2D transparentTexture("resources/textures/crack.png", 3);
-
-    blendingShader.use();
-    blendingShader.setInt("texture1", transparentTexture.getTextureNumber());
-
-    // light source cube
-
-    Shader lightCubeShader("resources/shaders/lightcube.vs", "resources/shaders/lightcube.fs");
-
-    unsigned int lightCubeVAO;
-    glGenVertexArrays(1, &lightCubeVAO);
-    glBindVertexArray(lightCubeVAO);
-
-    glBindBuffer(GL_ARRAY_BUFFER, cubeVBO);
-    // note that we update the lamp's position attribute's stride to reflect the updated buffer data
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
-    glEnableVertexAttribArray(0);
-
-    // skybox setup
 
     float skyboxVertices[] = {
             // positions
@@ -316,15 +220,6 @@ int main() {
             1.0f, -1.0f,  1.0f
     };
 
-    unsigned int skyboxVAO, skyboxVBO;
-    glGenVertexArrays(1, &skyboxVAO);
-    glGenBuffers(1, &skyboxVBO);
-    glBindVertexArray(skyboxVAO);
-    glBindBuffer(GL_ARRAY_BUFFER, skyboxVBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(skyboxVertices), &skyboxVertices, GL_STATIC_DRAW);
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
-
     vector<std::string> skyboxSides = {
             FileSystem::getPath("resources/textures/skyboxTextures/right.jpg"), // 0
             FileSystem::getPath("resources/textures/skyboxTextures/left.jpg"),  // 1
@@ -334,15 +229,278 @@ int main() {
             FileSystem::getPath("resources/textures/skyboxTextures/back.jpg") // 5
     };
 
+    float transparentVertices[] = {
+            // positions         // texture Coords (swapped y coordinates because texture is flipped upside down)
+            0.0f,  0.5f,  0.0f,  0.0f,  0.0f,
+            1.0f, -0.5f,  0.0f,  1.0f,  1.0f,
+            0.0f, -0.5f,  0.0f,  0.0f,  1.0f,
+
+            0.0f,  0.5f,  0.0f,  0.0f,  0.0f,
+            1.0f,  0.5f,  0.0f,  1.0f,  1.0f,
+            1.0f, -0.5f,  0.0f,  1.0f,  0.0f
+    };
+
+    // tabletop cube definitions and light
+
+    unsigned int tableTopCubeVBO, tableTopCubeVAO;
+    glGenVertexArrays(1, &tableTopCubeVAO);
+    glGenBuffers(1, &tableTopCubeVBO);
+
+    glBindBuffer(GL_ARRAY_BUFFER, tableTopCubeVBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+    glBindVertexArray(tableTopCubeVAO);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
+    glEnableVertexAttribArray(2);
+
+
+
+    unsigned int cubeVAO, cubeVBO;
+    glGenVertexArrays(1, &cubeVAO);
+    glGenBuffers(1, &cubeVBO);
+
+    glBindBuffer(GL_ARRAY_BUFFER, cubeVBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+    glBindVertexArray(cubeVAO);
+
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void *)0);
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void *)(3 * sizeof(float)));
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void *)(6 * sizeof(float)));
+    glEnableVertexAttribArray(2);
+
+
+    unsigned int pyramidVAO, pyramidVBO, pyramidEBO;
+    glGenVertexArrays(1, &pyramidVAO);
+    glGenBuffers(1, &pyramidVBO);
+    glGenBuffers(1, &pyramidEBO);
+
+    glBindVertexArray(pyramidVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, pyramidVBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(pyramidVertices), pyramidVertices, GL_STATIC_DRAW);
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, pyramidEBO);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(pyramidIndices), pyramidIndices, GL_STATIC_DRAW);
+
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void *)0);
+    glEnableVertexAttribArray(0);
+
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void *)(3 * sizeof(float)));
+    glEnableVertexAttribArray(1);
+
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void *)(6 * sizeof(float)));
+    glEnableVertexAttribArray(2);
+
+
+
+    unsigned int skyboxVAO, skyboxVBO;
+    glGenVertexArrays(1, &skyboxVAO);
+    glGenBuffers(1, &skyboxVBO);
+    glBindVertexArray(skyboxVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, skyboxVBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(skyboxVertices), &skyboxVertices, GL_STATIC_DRAW);
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+
+    unsigned int lightCubeVAO;
+    glGenVertexArrays(1, &lightCubeVAO);
+    glBindVertexArray(lightCubeVAO);
+
+    glBindBuffer(GL_ARRAY_BUFFER, cubeVBO);
+    // note that we update the lamp's position attribute's stride to reflect the updated buffer data
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(0);
+
+    unsigned int transparentVAO, transparentVBO;
+    glGenVertexArrays(1, &transparentVAO);
+    glGenBuffers(1, &transparentVBO);
+
+    glBindBuffer(GL_ARRAY_BUFFER, transparentVBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(transparentVertices), transparentVertices, GL_STATIC_DRAW);
+
+    glBindVertexArray(transparentVAO);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
+    glEnableVertexAttribArray(1);
+
+
+    Texture2D woodTexture("resources/textures/table.jpg", 0);
+    Texture2D pyramidTexture("resources/textures/bricks2.jpg", 1);
+    Texture2D tableTopCubeTexture("resources/textures/red_brick3.jpg", 2);
+    Texture2D transparentTexture("resources/textures/crack.png", 3);
     Texture2D skyboxTexture(skyboxSides, 4);
 
     skyboxShader.use();
     skyboxShader.setInt("skybox", skyboxTexture.getTextureNumber());
 
+    floorShader.use();
+    floorShader.setInt("material.specular", woodTexture.getTextureNumber());
+
+    pyramidShader.use();
+    pyramidShader.setInt("material.diffuse", pyramidTexture.getTextureNumber());
+
+
+    tableTopCubeShader.use();
+    tableTopCubeShader.setInt("material.diffuse", tableTopCubeTexture.getTextureNumber());
+
+
+    blendingShader.use();
+    blendingShader.setInt("texture1", transparentTexture.getTextureNumber());
+
+    // light source cube
+
+
+    // TODO: configure g-buffer framebuffer
+    //-------------------------------------
+    unsigned int gBuffer;
+    glGenFramebuffers(1, &gBuffer);
+    glBindFramebuffer(GL_FRAMEBUFFER, gBuffer);
+    unsigned int gPosition, gNormal, gAlbedoSpec;
+
+    // position color buffer
+    glGenTextures(1, &gPosition);
+    glBindTexture(GL_TEXTURE_2D, gPosition);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, SCR_WIDTH, SCR_HEIGHT, 0, GL_RGBA, GL_FLOAT, NULL);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, gPosition, 0);
+
+    // normal color buffer
+    glGenTextures(1, &gNormal);
+    glBindTexture(GL_TEXTURE_2D, gNormal);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, SCR_WIDTH, SCR_HEIGHT, 0, GL_RGBA, GL_FLOAT, NULL);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, gNormal, 0);
+
+    // color + specular color buffer
+    glGenTextures(1, &gAlbedoSpec);
+    glBindTexture(GL_TEXTURE_2D, gAlbedoSpec);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, SCR_WIDTH, SCR_HEIGHT, 0, GL_RGBA, GL_FLOAT, NULL);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, gAlbedoSpec, 0);
+
+    // tell OpenGL which color attachment we'll use (of this framebuffer) for rendering
+    unsigned int attachments[3] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2 };
+    glDrawBuffers(3, attachments);
+
+    // create and attach depth buffer (renderbuffer)
+    unsigned int rboDepth;
+    glGenRenderbuffers(1, &rboDepth);
+    glBindRenderbuffer(GL_RENDERBUFFER, rboDepth);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, SCR_WIDTH, SCR_HEIGHT);
+    glFramebufferRenderbuffer(GL_RENDERBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, rboDepth);
+
+    // finaly check if framebuffer is complete
+    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+        std::cerr << "Framebuffer not complete!\n";
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    // zavrsili kreiranje framebuffer-a
+    //---------------------------------
+
+
+
+    // TODO: shader configuration
+    //---------------------------
+    lightingPassShader.use();
+    lightingPassShader.setInt("gPosition", 0);
+    lightingPassShader.setInt("gNormal", 1);
+    lightingPassShader.setInt("gAlbedoSpec", 2);
+    //---------------------------
+
+
+
     while (!glfwWindowShouldClose(window)) {
         float currentFrame = static_cast<float>(glfwGetTime());
         deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
+
+        glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
+        glm::mat4 view = camera.GetViewMatrix();
+        glm::mat4 model = glm::mat4(1.0f);
+
+        // 1. geometry pass: render scene's geometry/color data into gbuffer
+        // -----------------------------------------------------------------
+        glBindFramebuffer(GL_FRAMEBUFFER, gBuffer);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        geometryPassShader.use();
+        geometryPassShader.setMat4("projection", projection);
+        geometryPassShader.setMat4("view", view);
+
+        model = glm::mat4(1.0f);
+        model = glm::translate(model, glm::vec3(-7.0f, -1.0f, -2.0f));
+        model = glm::scale(model, glm::vec3(1.8f));
+        geometryPassShader.setMat4("model", model);
+        sphere.Draw(geometryPassShader);
+
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+        // 2. lighting pass: calculate lighting by iterating over a screen filled quad pixel-by-pixel using the gbuffer's content.
+        // -----------------------------------------------------------------------------------------------------------------------
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        lightingPassShader.use();
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, gPosition);
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, gNormal);
+        glActiveTexture(GL_TEXTURE2);
+        glBindTexture(GL_TEXTURE_2D, gAlbedoSpec);
+        // send light relevant uniforms
+            lightingPassShader.setVec3("lights[0].Position", lightPos);
+            lightingPassShader.setVec3("lights[0].Color", glm::vec3(1.0f));
+            // update attenuation parameters and calculate radius
+            const float linear = 0.7f;
+            const float quadratic = 1.8f;
+            lightingPassShader.setFloat("lights[0].Linear", linear);
+            lightingPassShader.setFloat("lights[0].Quadratic", quadratic);
+        lightingPassShader.setVec3("viewPos", camera.Position);
+        // finally render quad
+        lightingPassShader.setMat4("projection", projection);
+        lightingPassShader.setMat4("view", view);
+        model = glm::mat4(1.0f);
+        model = glm::translate(model, lightPos);
+        model = glm::scale(model, glm::vec3(1.5f));
+        lightingPassShader.setMat4("model", model);
+
+        glBindVertexArray(lightCubeVAO);
+        glDrawArrays(GL_TRIANGLES, 0, 36);
+
+//        renderQuad();
+
+        // 2.5. copy content of geometry's depth buffer to default framebuffer's depth buffer
+        // ----------------------------------------------------------------------------------
+        glBindFramebuffer(GL_READ_FRAMEBUFFER, gBuffer);
+        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0); // write to default framebuffer
+        // blit to default framebuffer. Note that this may or may not work as the internal formats of both the FBO and default framebuffer have to match.
+        // the internal formats are implementation defined. This works on all of my systems, but if it doesn't on yours you'll likely have to write to the
+        // depth buffer in another shader stage (or somehow see to match the default framebuffer's internal format with the FBO's internal format).
+        glBlitFramebuffer(0, 0, SCR_WIDTH, SCR_HEIGHT, 0, 0, SCR_WIDTH, SCR_HEIGHT, GL_DEPTH_BUFFER_BIT, GL_NEAREST);
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+        // 3. render lights on top of scene
+        // --------------------------------
+//        lightCubeShader.use();
+//        lightCubeShader.setMat4("projection", projection);
+//        lightCubeShader.setMat4("projection", projection);
+//        for (unsigned int i = 0; i < lightPositions.size(); i++)
+//        {
+//            model = glm::mat4(1.0f);
+//            model = glm::translate(model, lightPositions[i]);
+//            model = glm::scale(model, glm::vec3(0.125f));
+//            lightCubeShader.setMat4("model", model);
+//            shaderLightBox.setVec3("lightColor", lightColors[i]);
+//            renderCube();
+//        }
 
         // spinning cube
         // the following two lines are commented out, but can be uncommented
@@ -354,18 +512,69 @@ int main() {
 
         processInput(window);
 
-        glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
         woodTexture.bind();
         pyramidTexture.bind();
         tableTopCubeTexture.bind();
         transparentTexture.bind();
         skyboxTexture.bindCubemap();
 
-        glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
-        glm::mat4 view = camera.GetViewMatrix();
-        glm::mat4 model = glm::mat4(1.0f);
+        glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+
+        /*
+        // TODO: 1. Geometry pass:
+        //------------------------
+        glBindFramebuffer(GL_FRAMEBUFFER, gBuffer);
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+            glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
+            glm::mat4 view = camera.GetViewMatrix();
+            glm::mat4 model = glm::mat4(1.0f);
+
+            geometryPassShader.use();
+            geometryPassShader.setMat4("projection", projection);
+            geometryPassShader.setMat4("view", view);
+            geometryPassShader.setMat4("model", model);
+
+            model = glm::mat4(1.0f);
+            model = glm::translate(model, glm::vec3(-7.0f, -1.0f, -2.0f));
+            model = glm::scale(model, glm::vec3(1.8f));
+            geometryPassShader.setMat4("model", model);
+            sphere.Draw(geometryPassShader);
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+        // TODO: 2. Light pass:
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        lightingPassShader.use();
+        glActiveTexture(GL_TEXTURE5);
+        glBindTexture(GL_TEXTURE_2D, gPosition);
+        glActiveTexture(GL_TEXTURE6);
+        glBindTexture(GL_TEXTURE_2D, gNormal);
+        glActiveTexture(GL_TEXTURE7);
+        glBindTexture(GL_TEXTURE_2D, gAlbedoSpec);
+
+        // send light relevent uniforms
+        lightingPassShader.setVec3("lights[0].Position", lightPos);
+        lightingPassShader.setVec3("lights[0].Color", glm::vec3(1.0f));
+        const float linear = 0.7;
+        const float quadratic = 1.8;
+        lightingPassShader.setFloat("lights[0].Linear", linear);
+        lightingPassShader.setFloat("lights[0].Quadratic", quadratic);
+        lightingPassShader.setVec3("viewPos", lightPos);
+
+        // finally render quadz (izvor svetlosti??)
+
+        // TODO: 2.5. copy content of geometry's depth buffer to default framebuffer's depth buffer
+        //-----------------------------------------------------------------------------------------
+        glBindFramebuffer(GL_READ_FRAMEBUFFER, gBuffer);
+        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+        glBlitFramebuffer(0, 0, SCR_WIDTH, SCR_HEIGHT, 0, 0, SCR_WIDTH, SCR_HEIGHT, GL_DEPTH_BUFFER_BIT, GL_NEAREST);
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+        // TODO: 3. Render everything else: froward rendering
+         */
+
+
 
         // Floor setup.
         floorShader.use();
@@ -593,7 +802,6 @@ int main() {
         glDrawArrays(GL_TRIANGLES, 0, 36);
 
         // Model setup.
-
         objectShader.use();
         objectShader.setVec3("viewPos", lightPos);
         objectShader.setFloat("material.shininess", 18.0f);
@@ -625,26 +833,9 @@ int main() {
         objectShader.setFloat("spotLight.cutOff", glm::cos(glm::radians(12.5f)));
         objectShader.setFloat("spotLight.outerCutOff", glm::cos(glm::radians(15.0f)));
 
-        objectShader.setMat4("projection", projection);
-        objectShader.setMat4("view", view);
-        model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(-7.0f, -1.0f, -2.0f));
-        model = glm::scale(model, glm::vec3(1.8f));
-        objectShader.setMat4("model", model);
-        sphere.Draw(objectShader);
+
 
         // Lighting cube defining
-
-        lightCubeShader.use();
-        lightCubeShader.setMat4("projection", projection);
-        lightCubeShader.setMat4("view", view);
-        model = glm::mat4(1.0f);
-        model = glm::translate(model, lightPos);
-        model = glm::scale(model, glm::vec3(1.5f));
-        lightCubeShader.setMat4("model", model);
-
-        glBindVertexArray(lightCubeVAO);
-        glDrawArrays(GL_TRIANGLES, 0, 36);
 
         // skybox
 
@@ -671,15 +862,15 @@ int main() {
     glDeleteBuffers(1, &pyramidVBO);
     glDeleteBuffers(1, &pyramidEBO);
 
-    glDeleteVertexArrays(1, &tableTopCubeVAO);
-    glDeleteBuffers(1, &tableTopCubeVBO);
-    glDeleteVertexArrays(1, &lightCubeVAO);
-
-    glDeleteBuffers(1, &transparentVBO);
-    glDeleteVertexArrays(1, &transparentVAO);
-
-    glDeleteVertexArrays(1, &skyboxVAO);
-    glDeleteBuffers(1, &skyboxVBO);
+//    glDeleteVertexArrays(1, &tableTopCubeVAO);
+//    glDeleteBuffers(1, &tableTopCubeVBO);
+//    glDeleteVertexArrays(1, &lightCubeVAO);
+//
+//    glDeleteBuffers(1, &transparentVBO);
+//    glDeleteVertexArrays(1, &transparentVAO);
+//
+//    glDeleteVertexArrays(1, &skyboxVAO);
+//    glDeleteBuffers(1, &skyboxVBO);
 
     glfwTerminate();
     return 0;

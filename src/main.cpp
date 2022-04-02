@@ -22,8 +22,8 @@ void key_callback(GLFWwindow *window, int key, int scancode, int action, int mod
 void renderQuad();
 
 // settings
-const unsigned int SCR_WIDTH = 800;
-const unsigned int SCR_HEIGHT = 600;
+const unsigned int SCR_WIDTH = 1270;
+const unsigned int SCR_HEIGHT = 1080;
 bool flashLight = false;
 bool flashLightKeyPressed = false;
 bool bloomKeyPressed = false;
@@ -72,7 +72,7 @@ int main() {
     glfwSetScrollCallback(window, scroll_callback);
     glfwSetKeyCallback(window, key_callback);
     // tell GLFW to capture our mouse
-    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
     // glad: load all OpenGL function pointers
     // ---------------------------------------
@@ -90,6 +90,7 @@ int main() {
     Shader pyramidShader("resources/shaders/uniformLightShader.vs", "resources/shaders/uniformLightShader.fs");
     Shader objectShader("resources/shaders/objectShader.vs", "resources/shaders/objectShader.fs");
     Shader tableTopCubeShader("resources/shaders/uniformLightShader.vs", "resources/shaders/uniformLightShader.fs");
+    Shader plantNormalShader("resources/shaders/plantShader.vs", "resources/shaders/plantShader.fs");
 
     Shader skyboxShader("resources/shaders/skyboxShader.vs", "resources/shaders/skyboxShader.fs");
     Shader lightCubeShader("resources/shaders/lightcube.vs", "resources/shaders/lightcube.fs");
@@ -99,6 +100,9 @@ int main() {
 
     Model plant(FileSystem::getPath("resources/objects/plant/plant-1.obj"), true);
     plant.SetShaderTextureNamePrefix("material.");
+    for (auto& textures : plant.textures_loaded) {
+        std::cerr << textures.path << ' ' << textures.type << '\n';
+    }
 
     Model sphere(FileSystem::getPath("resources/objects/xxr-sphere/XXR_B_BLOODSTONE_002.obj"), true);
     sphere.SetShaderTextureNamePrefix("material.");
@@ -714,11 +718,71 @@ int main() {
 
         // plant model
 
+        plantNormalShader.use();
+        plantNormalShader.setVec3("viewPos", camera.Position);
+        plantNormalShader.setVec3("lightPos", lightPos);
+
+        plantNormalShader.setFloat("material.shininess", 32.0f);
+
+        plantNormalShader.setMat4("projection", projection);
+        plantNormalShader.setMat4("view", view);
         model = glm::mat4(1.0f);
         model = glm::translate(model, glm::vec3(9.0f, 3.0f, -9.0f));
         model = glm::scale(model, glm::vec3(13.0f));
-        objectShader.setMat4("model", model);
-        plant.Draw(objectShader);
+        plantNormalShader.setMat4("model", model);
+        plant.Draw(plantNormalShader);
+
+        /*
+        plantNormalShader.setVec3("dirLight.direction", glm::vec3(dirPos));
+        plantNormalShader.setVec3("dirLight.ambient", 0.1f, 0.1f, 0.1f);
+        plantNormalShader.setVec3("dirLight.diffuse", 0.2f, 0.2f, 0.2f);
+        plantNormalShader.setVec3("dirLight.specular", 0.0f, 0.0f, 0.0f);
+
+        plantNormalShader.setVec3("pointLight.position", lightPos);
+        plantNormalShader.setVec3("pointLight.ambient", 0.05f, 0.05f, 0.05f);
+        plantNormalShader.setVec3("pointLight.diffuse", 1.0f, 1.0f, 1.0f);
+        plantNormalShader.setVec3("pointLight.specular", 0.0f, 0.0f, 0.0f);
+        plantNormalShader.setFloat("pointLight.constant", 1.0f);
+        plantNormalShader.setFloat("pointLight.linear", 0.007f);
+        plantNormalShader.setFloat("pointLight.quadratic", 0.0002f);
+
+        plantNormalShader.setVec3("spotLight.position", camera.Position);
+        plantNormalShader.setVec3("spotLight.direction", camera.Front);
+        plantNormalShader.setVec3("spotLight.ambient", 0.0f, 0.0f, 0.0f);
+        plantNormalShader.setVec3("spotLight.diffuse", 1.0f, 1.0f, 1.0f);
+        plantNormalShader.setVec3("spotLight.specular", 1.2f, 1.2f, 1.2f);
+        plantNormalShader.setFloat("spotLight.constant", 1.0f);
+        plantNormalShader.setFloat("spotLight.linear", 0.007f);
+        plantNormalShader.setFloat("spotLight.quadratic", 0.0002f);
+        plantNormalShader.setFloat("spotLight.cutOff", glm::cos(glm::radians(12.5f)));
+        plantNormalShader.setFloat("spotLight.outerCutOff", glm::cos(glm::radians(15.0f)));
+
+        // unfortunately, face culling doesn't work well on this model
+        for (int i = 0; i < plant.meshes[0].textures.size(); i++) {
+            if (plant.meshes[0].textures[i].type == "texture_diffuse") {
+                plantNormalShader.setInt("material.texture_diffuse1", i);
+                glActiveTexture(GL_TEXTURE0 + i);
+                glBindTexture(GL_TEXTURE_2D, plant.meshes[0].textures[i].id);
+            } else if (plant.meshes[0].textures[i].type == "texture_specular") {
+                plantNormalShader.setInt("material.texture_specular1", i);
+                glActiveTexture(GL_TEXTURE0 + i);
+                glBindTexture(GL_TEXTURE_2D, plant.meshes[0].textures[i].id);
+            } else if (plant.meshes[0].textures[i].type == "texture_normal") {
+                plantNormalShader.setInt("material.normalMap", i);
+                glActiveTexture(GL_TEXTURE0 + i);
+                glBindTexture(GL_TEXTURE_2D, plant.meshes[0].textures[i].id);
+            }
+        }
+
+//        glBindVertexArray(plant.meshes[0].VAO);
+//        glDrawElementsInstanced(GL_TRIANGLES, plant.meshes[0].indices.size(), GL_UNSIGNED_INT, nullptr, amount);
+//        glBindVertexArray(0);
+        model = glm::mat4(1.0f);
+        model = glm::translate(model, glm::vec3(9.0f, 3.0f, -9.0f));
+        model = glm::scale(model, glm::vec3(13.0f));
+        plantNormalShader.setMat4("model", model);
+        plant.Draw(plantNormalShader);
+         */
 
         // Lighting cube defining
 

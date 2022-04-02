@@ -18,7 +18,7 @@ Iz grupe A:
 - [x] Cubemaps (Branko)
 
 Iz grupe B:
-- [ ] Deferred shading (Radovan)
+- [ ] Normal/Parallax Mapping (Radovan)
 - [x] HDR/Bloom (Branko)
 
 ## Assets:

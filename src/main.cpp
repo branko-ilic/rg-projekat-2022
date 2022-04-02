@@ -28,7 +28,7 @@ bool flashLight = false;
 bool flashLightKeyPressed = false;
 bool bloomKeyPressed = false;
 bool bloom = false;
-float exposure = 0.35f; // tweak this
+float exposure = 0.55f; // tweak this
 
 // camera
 //Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
@@ -423,8 +423,8 @@ int main() {
         // if you wish to see how the constant changing of the light position
         // affects the lighting on objects
 
-        lightPos.x = 5*sin(currentFrame)+1;
-        lightPos.z = 5*cos(currentFrame)+1;
+//        lightPos.x = 5*sin(currentFrame)+1;
+//        lightPos.z = 5*cos(currentFrame)+1;
 
         processInput(window);
 
@@ -886,7 +886,7 @@ void processInput(GLFWwindow *window) {
         if (exposure > 0.0f)
             exposure -= 0.01f;
         else
-            exposure = 0.35f;
+            exposure = 0.55f;
     }
     else if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
     {
@@ -912,7 +912,11 @@ void mouse_callback(GLFWwindow *window, double xpos, double ypos) {
     }
 
     float xoffset = xpos - lastX;
-    float yoffset = lastY - ypos; // reversed since y-coordinates go from bottom to top
+    float yoffset = lastY - ypos; // reversed since y-coordinates go from bottom to to
+
+//    float sensitivity = 0.01f; // change this value to your liking
+//    xoffset *= sensitivity;
+//    yoffset *= sensitivity;
 
     lastX = xpos;
     lastY = ypos;

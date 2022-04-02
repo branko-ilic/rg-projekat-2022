@@ -25,7 +25,7 @@ Iz grupe B:
 
 * Koordinate za piramide pozajmljene iz
   [Middle-Earth-Project](https://github.com/matf-rg-2020-showcase/Middle-Earth-Project/blob/main/src/main.cpp#L146)
-* Teksture za skybox: https://polyhaven.com/a/lebombo
+* Teksture za skybox: https://www.flickr.com/photos/gadl/393474308/
 * Model biljke: https://sketchfab.com/3d-models/indoor-plant-51e326685e01441082464347e269f94c
 
 

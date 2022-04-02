@@ -160,6 +160,14 @@ int main() {
             std::cout << "Framebuffer not complete!" << std::endl;
     }
 
+    pyramidShader.use();
+    pyramidShader.setInt("diffuseTexture", 0);
+    shaderBlur.use();
+    shaderBlur.setInt("image", 0);
+    shaderBloomFinal.use();
+    shaderBloomFinal.setInt("scene", 0);
+    shaderBloomFinal.setInt("bloomBlur", 1);
+
     // cube vertices
 
     float vertices[] = {
@@ -405,12 +413,6 @@ int main() {
     skyboxShader.use();
     skyboxShader.setInt("skybox", skyboxTexture.getTextureNumber());
 
-    shaderBlur.use();
-    shaderBlur.setInt("image", 0);
-    shaderBloomFinal.use();
-    shaderBloomFinal.setInt("scene", 0);
-    shaderBloomFinal.setInt("bloomBlur", 1);
-
     while (!glfwWindowShouldClose(window)) {
         float currentFrame = static_cast<float>(glfwGetTime());
         deltaTime = currentFrame - lastFrame;
@@ -537,7 +539,7 @@ int main() {
 
         pyramidShader.use();
         pyramidShader.setVec3("viewPos", lightPos);
-        pyramidShader.setFloat("material.shininess", 1.0f);
+        pyramidShader.setFloat("material.shininess", 16.0f);
         pyramidShader.setInt("flashLight", flashLight);
 
         // light properties
@@ -550,7 +552,7 @@ int main() {
         pyramidShader.setVec3("pointLight.position", lightPos);
         pyramidShader.setVec3("pointLight.ambient", 0.1f, 0.1f, 0.05f);
         pyramidShader.setVec3("pointLight.diffuse", 0.4f, 0.4f, 0.4f);
-        pyramidShader.setVec3("pointLight.specular", 0.6f, 0.6f, 0.6f);
+        pyramidShader.setVec3("pointLight.specular", 1.0f, 1.0f, 1.0f);
         pyramidShader.setFloat("pointLight.constant", 1.0f);
         pyramidShader.setFloat("pointLight.linear", 0.07f);
         pyramidShader.setFloat("pointLight.quadratic", 0.00002f);
@@ -753,7 +755,7 @@ int main() {
         // blur bright fragments with two-pass Gaussian Blur
         // --------------------------------------------------
         bool horizontal = true, first_iteration = true;
-        unsigned int amount = 15;
+        unsigned int amount = 30; // 30 is the absolute max before performance starts taking a huge hit
         shaderBlur.use();
         for (unsigned int i = 0; i < amount; i++)
         {
@@ -882,13 +884,13 @@ void processInput(GLFWwindow *window) {
     if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
     {
         if (exposure > 0.0f)
-            exposure -= 0.1f;
+            exposure -= 0.01f;
         else
-            exposure = 0.0f;
+            exposure = 0.35f;
     }
     else if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
     {
-        exposure += 0.1f;
+        exposure += 0.01f;
     }
 }
 

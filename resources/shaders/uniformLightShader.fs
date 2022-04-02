@@ -52,6 +52,7 @@ uniform PointLight pointLight;
 uniform SpotLight spotLight;
 uniform Material material;
 uniform bool flashLight;
+uniform sampler2D diffuseTexture;
 
 // function prototypes
 vec3 CalcDirLight(DirLight light, vec3 normal, vec3 viewDir);

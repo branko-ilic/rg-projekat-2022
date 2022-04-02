@@ -92,7 +92,7 @@ int main() {
     Shader tableTopCubeShader("resources/shaders/uniformLightShader.vs", "resources/shaders/uniformLightShader.fs");
 
     Shader skyboxShader("resources/shaders/skyboxShader.vs", "resources/shaders/skyboxShader.fs");
-    Shader lightCubeShader("resources/shaders/lightcube.vs", "resources/shaders/lightcube.fs");
+    Shader lightCubeShader("resources/shaders/uniformLightShader.vs", "resources/shaders/lightcube.fs");
 
     Shader shaderBlur("resources/shaders/bloomShaders/blur.vs", "resources/shaders/bloomShaders/blur.fs");
     Shader shaderBloomFinal("resources/shaders/bloomShaders/bloom.vs", "resources/shaders/bloomShaders/bloom.fs");
@@ -539,7 +539,7 @@ int main() {
 
         pyramidShader.use();
         pyramidShader.setVec3("viewPos", lightPos);
-        pyramidShader.setFloat("material.shininess", 16.0f);
+        pyramidShader.setFloat("material.shininess", 1.0f);
         pyramidShader.setInt("flashLight", flashLight);
 
         // light properties
@@ -552,7 +552,7 @@ int main() {
         pyramidShader.setVec3("pointLight.position", lightPos);
         pyramidShader.setVec3("pointLight.ambient", 0.1f, 0.1f, 0.05f);
         pyramidShader.setVec3("pointLight.diffuse", 0.4f, 0.4f, 0.4f);
-        pyramidShader.setVec3("pointLight.specular", 1.0f, 1.0f, 1.0f);
+        pyramidShader.setVec3("pointLight.specular", 0.6f, 0.6f, 0.6f);
         pyramidShader.setFloat("pointLight.constant", 1.0f);
         pyramidShader.setFloat("pointLight.linear", 0.07f);
         pyramidShader.setFloat("pointLight.quadratic", 0.00002f);
@@ -730,7 +730,7 @@ int main() {
         model = glm::mat4(1.0f);
         model = glm::translate(model, lightPos);
         model = glm::scale(model, glm::vec3(1.5f));
-        lightCubeShader.setVec3("lightColor", glm::vec3(1.0f,1.0f,1.0f));
+        lightCubeShader.setVec3("lightColor", glm::vec3(1.0f, 1.0f, 1.0f));
         lightCubeShader.setMat4("model", model);
 
         glBindVertexArray(lightCubeVAO);
@@ -755,7 +755,7 @@ int main() {
         // blur bright fragments with two-pass Gaussian Blur
         // --------------------------------------------------
         bool horizontal = true, first_iteration = true;
-        unsigned int amount = 30; // 30 is the absolute max before performance starts taking a huge hit
+        unsigned int amount = 10;
         shaderBlur.use();
         for (unsigned int i = 0; i < amount; i++)
         {

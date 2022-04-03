@@ -29,6 +29,7 @@ bool flashLightKeyPressed = false;
 bool bloomKeyPressed = false;
 bool bloom = false;
 float exposure = 0.55f; // tweak this
+bool AABloom = false;
 
 // camera
 //Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
@@ -502,14 +503,17 @@ int main() {
 
         // render scene into floating point framebuffer
         // -----------------------------------------------BLOOM
-        glBindFramebuffer(GL_FRAMEBUFFER, hdrFBO);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        // 1. draw scene as normal in multisampled buffers
-        glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
-        glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        glEnable(GL_DEPTH_TEST);
+        if(AABloom){
+            glBindFramebuffer(GL_FRAMEBUFFER, hdrFBO);
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        }else{
+            // 1. draw scene as normal in multisampled buffers
+            glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+            glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+            glEnable(GL_DEPTH_TEST);
+        }
 
         woodTexture.bind();
         pyramidTexture.bind();
@@ -825,55 +829,55 @@ int main() {
         glBindVertexArray(0);
         glDepthFunc(GL_LESS); // set depth function back to default
 
+        if(AABloom){
+            glBindFramebuffer(GL_FRAMEBUFFER, 0);
+            // blur bright fragments with two-pass Gaussian Blur
+            // --------------------------------------------------
+            bool horizontal = true, first_iteration = true;
+            unsigned int amount = 10;
+            shaderBlur.use();
+            for (unsigned int i = 0; i < amount; i++)
+            {
+                glBindFramebuffer(GL_FRAMEBUFFER, pingpongFBO[horizontal]);
+                shaderBlur.setInt("horizontal", horizontal);
+                glBindTexture(GL_TEXTURE_2D, first_iteration ? colorBuffers[1] : pingpongColorbuffers[!horizontal]);  // bind texture of other framebuffer (or scene if first iteration)
+                renderQuad();
+                horizontal = !horizontal;
+                if (first_iteration)
+                    first_iteration = false;
+            }
+            glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
-        // blur bright fragments with two-pass Gaussian Blur
-        // --------------------------------------------------
-        bool horizontal = true, first_iteration = true;
-        unsigned int amount = 10;
-        shaderBlur.use();
-        for (unsigned int i = 0; i < amount; i++)
-        {
-            glBindFramebuffer(GL_FRAMEBUFFER, pingpongFBO[horizontal]);
-            shaderBlur.setInt("horizontal", horizontal);
-            glBindTexture(GL_TEXTURE_2D, first_iteration ? colorBuffers[1] : pingpongColorbuffers[!horizontal]);  // bind texture of other framebuffer (or scene if first iteration)
+            // now render floating point color buffer to 2D quad and tonemap HDR colors to default framebuffer's (clamped) color range
+            // --------------------------------------------------------------------------------------------------------------------------
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+            shaderBloomFinal.use();
+            glActiveTexture(GL_TEXTURE0);
+            glBindTexture(GL_TEXTURE_2D, colorBuffers[0]);
+            glActiveTexture(GL_TEXTURE1);
+            glBindTexture(GL_TEXTURE_2D, pingpongColorbuffers[!horizontal]);
+            shaderBloomFinal.setInt("bloom", bloom);
+            shaderBloomFinal.setFloat("exposure", exposure);
             renderQuad();
-            horizontal = !horizontal;
-            if (first_iteration)
-                first_iteration = false;
+        }else{
+            // 2. now blit multisampled buffer(s) to normal colorbuffer of intermediate FBO. Image is stored in screenTexture
+            glBindFramebuffer(GL_READ_FRAMEBUFFER, framebuffer);
+            glBindFramebuffer(GL_DRAW_FRAMEBUFFER, intermediateFBO);
+            glBlitFramebuffer(0, 0, SCR_WIDTH, SCR_HEIGHT, 0, 0, SCR_WIDTH, SCR_HEIGHT, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+
+            // 3. now render quad with scene's visuals as its texture image
+            glBindFramebuffer(GL_FRAMEBUFFER, 0);
+            glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+            glClear(GL_COLOR_BUFFER_BIT);
+            glDisable(GL_DEPTH_TEST);
+
+            // draw Screen quad
+            screenShader.use();
+            glBindVertexArray(quadVAO);
+            glActiveTexture(GL_TEXTURE0);
+            glBindTexture(GL_TEXTURE_2D, screenTexture); // use the now resolved color attachment as the quad's texture
+            glDrawArrays(GL_TRIANGLES, 0, 6);
         }
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-        // now render floating point color buffer to 2D quad and tonemap HDR colors to default framebuffer's (clamped) color range
-        // --------------------------------------------------------------------------------------------------------------------------
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        shaderBloomFinal.use();
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, colorBuffers[0]);
-        glActiveTexture(GL_TEXTURE1);
-        glBindTexture(GL_TEXTURE_2D, pingpongColorbuffers[!horizontal]);
-        shaderBloomFinal.setInt("bloom", bloom);
-        shaderBloomFinal.setFloat("exposure", exposure);
-        renderQuad();
-
-        // 2. now blit multisampled buffer(s) to normal colorbuffer of intermediate FBO. Image is stored in screenTexture
-        glBindFramebuffer(GL_READ_FRAMEBUFFER, framebuffer);
-        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, intermediateFBO);
-        glBlitFramebuffer(0, 0, SCR_WIDTH, SCR_HEIGHT, 0, 0, SCR_WIDTH, SCR_HEIGHT, GL_COLOR_BUFFER_BIT, GL_NEAREST);
-
-        // 3. now render quad with scene's visuals as its texture image
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
-        glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT);
-        glDisable(GL_DEPTH_TEST);
-
-        // draw Screen quad
-        screenShader.use();
-        glBindVertexArray(quadVAO);
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, screenTexture); // use the now resolved color attachment as the quad's texture
-        glDrawArrays(GL_TRIANGLES, 0, 6);
-
 
         glfwSwapBuffers(window);
         glfwPollEvents();

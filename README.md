@@ -7,9 +7,11 @@
 4. ALT+SHIFT+F10 -> projekat -> run
 5. Za kretanje se koristi `W`, `A`, `S`, `D`
 6. Za ubrzavanje kamere `UP` i `DOWN` strelice
-7. Za ukljucivanje/iskljucivanje spotlight-a (flashlight) `F`
-8. Za ukljucivanje/iskljucivanje bloom-a `SPACE`
-9. Za povecanje intenziteta bloom-a `E`, za smanjivanje `Q`
+7. Za zumiranje scroll
+8. Za ukljucivanje/iskljucivanje spotlight-a (flashlight) `F`
+9. Za menjanje izmedju Anti Aliasing i Bloom efekata `B`
+10. Za ukljucivanje/iskljucivanje bloom-a `SPACE`
+11. Za povecanje intenziteta bloom-a `E`, za smanjivanje `Q`
 
 ## Dodatne oblasti
 

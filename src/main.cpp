@@ -28,8 +28,12 @@ bool flashLight = false;
 bool flashLightKeyPressed = false;
 bool bloomKeyPressed = false;
 bool bloom = false;
-float exposure = 0.55f; // tweak this
-bool AABloom = false;
+float exposure = 2.5f; // tweak this
+
+// AABloom = true activates bloom
+// AABloom = false activates anti aliasing
+bool AABloom = true;
+bool AABloomKeyPressed = false;
 
 // camera
 //Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
@@ -506,7 +510,9 @@ int main() {
 
         if(AABloom){
             glBindFramebuffer(GL_FRAMEBUFFER, hdrFBO);
+            glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+            glEnable(GL_DEPTH_TEST);
         }else{
             // 1. draw scene as normal in multisampled buffers
             glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
@@ -987,13 +993,23 @@ void processInput(GLFWwindow *window) {
     if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
     {
         if (exposure > 0.0f)
-            exposure -= 0.01f;
+            exposure -= 0.1f;
         else
-            exposure = 0.55f;
+            exposure = 2.5f;
     }
     else if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
     {
-        exposure += 0.01f;
+        exposure += 0.1f;
+    }
+
+    if (glfwGetKey(window, GLFW_KEY_B) == GLFW_PRESS && !AABloomKeyPressed)
+    {
+        AABloom = !AABloom;
+        AABloomKeyPressed = true;
+    }
+    if (glfwGetKey(window, GLFW_KEY_B) == GLFW_RELEASE)
+    {
+        AABloomKeyPressed = false;
     }
 }
 

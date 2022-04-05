@@ -29,6 +29,7 @@ bool flashLightKeyPressed = false;
 bool bloomKeyPressed = false;
 bool bloom = false;
 float exposure = 2.5f; // tweak this
+bool cursorToggle = false;
 
 // AABloom = true activates bloom
 // AABloom = false activates anti aliasing
@@ -101,7 +102,8 @@ int main() {
     Shader shaderBloomFinal("resources/shaders/bloomShaders/bloom.vs", "resources/shaders/bloomShaders/bloom.fs");
 
 
-    Model plant(FileSystem::getPath("resources/objects/plant/plant-1.obj"), true);
+    Shader plantShader("resources/shaders/plantShader.vs", "resources/shaders/plantShader.fs");
+    Model plant(FileSystem::getPath("resources/objects/azalea/Azalea_SF.obj"), true);
     plant.SetShaderTextureNamePrefix("material.");
 
     Model sphere(FileSystem::getPath("resources/objects/xxr-sphere/XXR_B_BLOODSTONE_002.obj"), true);
@@ -799,13 +801,47 @@ int main() {
         objectShader.setMat4("model", model);
         sphere.Draw(objectShader);
 
-        // plant model
+        // Plant model with normal mapping.
+
+        plantShader.use();
+        plantShader.setMat4("projection", projection);
+        plantShader.setMat4("view", view);
+
+        plantShader.setVec3("lightPos", lightPos);
+        plantShader.setVec3("viewPos", lightPos);
+        plantShader.setVec3("lightDir", dirPos);
+        plantShader.setInt("flashLight", flashLight);
+        plantShader.setFloat("material.shininess", 18.0f);
+
+        plantShader.setVec3("dirLight.direction", glm::vec3(dirPos));
+        plantShader.setVec3("dirLight.ambient", 0.1f, 0.1f, 0.1f);
+        plantShader.setVec3("dirLight.diffuse", 0.2f, 0.2f, 0.2f);
+        plantShader.setVec3("dirLight.specular", glm::vec3(0.1f));
+
+        plantShader.setVec3("pointLight.position", lightPos);
+        plantShader.setVec3("pointLight.ambient", glm::vec3(0.1f));
+        plantShader.setVec3("pointLight.diffuse", 1.0f, 1.0f, 1.0f);
+        plantShader.setVec3("pointLight.specular", 0.0f, 0.0f, 0.0f);
+        plantShader.setFloat("pointLight.constant", 1.0f);
+        plantShader.setFloat("pointLight.linear", 0.007f);
+        plantShader.setFloat("pointLight.quadratic", 0.0002f);
+
+        plantShader.setVec3("spotLight.position", camera.Position);
+        plantShader.setVec3("spotLight.direction", camera.Front);
+        plantShader.setVec3("spotLight.ambient", glm::vec3(0.1f));
+        plantShader.setVec3("spotLight.diffuse", 1.0f, 1.0f, 1.0f);
+        plantShader.setVec3("spotLight.specular", glm::vec3(1.2f));
+        plantShader.setFloat("spotLight.constant", 1.0f);
+        plantShader.setFloat("spotLight.linear", 0.007f);
+        plantShader.setFloat("spotLight.quadratic", 0.0002f);
+        plantShader.setFloat("spotLight.cutOff", glm::cos(glm::radians(12.5f)));
+        plantShader.setFloat("spotLight.outerCutOff", glm::cos(glm::radians(15.0f)));
 
         model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(9.0f, 3.0f, -9.0f));
-        model = glm::scale(model, glm::vec3(13.0f));
-        objectShader.setMat4("model", model);
-        plant.Draw(objectShader);
+        model = glm::translate(model, glm::vec3(9.0f, 0.0f, -9.0f));
+        model = glm::scale(model, glm::vec3(0.3f));
+        plantShader.setMat4("model", model);
+        plant.Draw(plantShader);
 
         // Lighting cube defining
 
@@ -1050,5 +1086,20 @@ void scroll_callback(GLFWwindow *window, double xoffset, double yoffset) {
 }
 
 
-void key_callback(GLFWwindow *window, int key, int scancode, int action, int mods) {
+void key_callback(GLFWwindow *window, int key, int scancode, int action, int mods)
+{
+
+    if (key == GLFW_KEY_C && action == GLFW_PRESS) {
+
+        // ako je ukljucen kursor - iskljuci ga
+        if (cursorToggle) {
+            cursorToggle = false;
+            glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+        } else {
+            cursorToggle = true;
+            glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+        }
+
+
+    }
 }

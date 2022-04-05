@@ -32,7 +32,7 @@ Iz grupe B:
   [Middle-Earth-Project](https://github.com/matf-rg-2020-showcase/Middle-Earth-Project/blob/main/src/main.cpp#L146)
 * [Teksture za skybox](https://www.flickr.com/photos/gadl/393474308/)
 * [Model biljke](https://sketchfab.com/3d-models/azalea-fae7c1ccc8d9405f859e4920787c1c08)
-* Sfera: [link](https://sketchfab.com/3d-models/xxr-sphere-121319-7928b72a80d341cdae1d0b7cb09988bd)
+* [Sfera](https://sketchfab.com/3d-models/xxr-sphere-121319-7928b72a80d341cdae1d0b7cb09988bd)
 
 
 ## Autori

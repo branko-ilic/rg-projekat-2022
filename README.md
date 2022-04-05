@@ -14,6 +14,8 @@
 11. Za povecanje intenziteta bloom-a `E`, za smanjivanje `Q`
 12. `C` za uključivanje/isključivanje kursora
 
+* Arhivu [objects.zip](https://drive.google.com/file/d/1qHIkjWMSXUBQ2YnIVI8RuIWmUwzyREgg/view?usp=sharing) raspakovati u `resources/` direktorijum.
+
 ## Dodatne oblasti
 
 Iz grupe A:
@@ -30,6 +32,7 @@ Iz grupe B:
   [Middle-Earth-Project](https://github.com/matf-rg-2020-showcase/Middle-Earth-Project/blob/main/src/main.cpp#L146)
 * Teksture za skybox: https://www.flickr.com/photos/gadl/393474308/
 * Model biljke: [link](https://sketchfab.com/3d-models/azalea-fae7c1ccc8d9405f859e4920787c1c08)
+* Sfera: [link](https://sketchfab.com/3d-models/xxr-sphere-121319-7928b72a80d341cdae1d0b7cb09988bd)
 
 
 ## Autori

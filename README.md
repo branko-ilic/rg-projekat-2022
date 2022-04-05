@@ -12,6 +12,7 @@
 9. Za menjanje izmedju Anti Aliasing i Bloom efekata `B`
 10. Za ukljucivanje/iskljucivanje bloom-a `SPACE`
 11. Za povecanje intenziteta bloom-a `E`, za smanjivanje `Q`
+12. `C` za uključivanje/isključivanje kursora
 
 ## Dodatne oblasti
 
@@ -28,7 +29,7 @@ Iz grupe B:
 * Koordinate za piramide pozajmljene iz
   [Middle-Earth-Project](https://github.com/matf-rg-2020-showcase/Middle-Earth-Project/blob/main/src/main.cpp#L146)
 * Teksture za skybox: https://www.flickr.com/photos/gadl/393474308/
-* Model biljke: https://sketchfab.com/3d-models/indoor-plant-51e326685e01441082464347e269f94c
+* Model biljke: [link](https://sketchfab.com/3d-models/azalea-fae7c1ccc8d9405f859e4920787c1c08)
 
 
 ## Autori

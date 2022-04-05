@@ -20,6 +20,7 @@ void scroll_callback(GLFWwindow *window, double xoffset, double yoffset);
 void processInput(GLFWwindow *window);
 void key_callback(GLFWwindow *window, int key, int scancode, int action, int mods);
 void renderQuad();
+unsigned int loadTexture(char const * path);
 
 // settings
 const unsigned int SCR_WIDTH = 1080;
@@ -52,6 +53,7 @@ float lastFrame = 0.0f;
 // lighting
 glm::vec3 lightPos = glm::vec3(0.0f, 10.0f, 0.0f);
 glm::vec3 dirPos = glm::vec3(-40.0f, 10.0f, -40.0f);
+float heightScale = 0.001;
 
 int main() {
     // glfw: initialize and configure
@@ -105,6 +107,10 @@ int main() {
     Shader plantShader("resources/shaders/plantShader.vs", "resources/shaders/plantShader.fs");
     Model plant(FileSystem::getPath("resources/objects/azalea/Azalea_SF.obj"), true);
     plant.SetShaderTextureNamePrefix("material.");
+
+    Shader bookShader("resources/shaders/bookShader.vs", "resources/shaders/bookShader.fs");
+    Model book(FileSystem::getPath("resources/objects/hobbit-book/hobbit_book_SF.obj"));
+    book.SetShaderTextureNamePrefix("material.");
 
     Model sphere(FileSystem::getPath("resources/objects/xxr-sphere/XXR_B_BLOODSTONE_002.obj"), true);
     sphere.SetShaderTextureNamePrefix("material.");
@@ -489,6 +495,9 @@ int main() {
     screenShader.use();
     screenShader.setInt("screenTexture", 0);
 
+    // TODO: Da li moze preko klase Texture2D
+    unsigned int heightMap = loadTexture("resources/objects/hobbit-book/hobbit_height_map.jpg");
+
     while (!glfwWindowShouldClose(window)) {
         float currentFrame = static_cast<float>(glfwGetTime());
         deltaTime = currentFrame - lastFrame;
@@ -843,6 +852,35 @@ int main() {
         plantShader.setMat4("model", model);
         plant.Draw(plantShader);
 
+        // Book with parallax mapping
+
+        bookShader.use();
+        bookShader.setMat4("projection", projection);
+        bookShader.setMat4("view", view);
+        bookShader.setVec3("lightPos", lightPos);
+        bookShader.setVec3("viewPos", lightPos);
+
+        for (int i = 0; i < book.meshes[0].textures.size(); i++) {
+            bookShader.setInt("material.texture_height1", book.meshes[0].textures.size());
+            glActiveTexture(GL_TEXTURE0 + book.meshes[0].textures.size());
+            glBindTexture(GL_TEXTURE_2D, heightMap);
+            bookShader.setFloat("heightScale", heightScale);
+        }
+
+        // TODO: Bolja pozicija
+        glm::vec3 positions[2] = {
+                glm::vec3(0.0f, 3.0f, 0.0f),
+                glm::vec3(3.0f, 3.0f, 0.0f)
+        };
+
+        for (int i = 0; i < 2; i++) {
+            model = glm::mat4(1.0f);
+            model = glm::translate(model, positions[i]);
+            model = glm::scale(model, glm::vec3(0.5f));
+            bookShader.setMat4("model", model);
+            book.Draw(bookShader);
+        }
+
         // Lighting cube defining
 
         lightCubeShader.use();
@@ -1102,4 +1140,41 @@ void key_callback(GLFWwindow *window, int key, int scancode, int action, int mod
 
 
     }
+}
+
+unsigned int loadTexture(char const * path)
+{
+    unsigned int textureID;
+    glGenTextures(1, &textureID);
+
+    int width, height, nrComponents;
+    unsigned char *data = stbi_load(path, &width, &height, &nrComponents, 0);
+    if (data)
+    {
+        GLenum format;
+        if (nrComponents == 1)
+            format = GL_RED;
+        else if (nrComponents == 3)
+            format = GL_RGB;
+        else if (nrComponents == 4)
+            format = GL_RGBA;
+
+        glBindTexture(GL_TEXTURE_2D, textureID);
+        glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
+        glGenerateMipmap(GL_TEXTURE_2D);
+
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+        stbi_image_free(data);
+    }
+    else
+    {
+        std::cout << "Texture failed to load at path: " << path << std::endl;
+        stbi_image_free(data);
+    }
+
+    return textureID;
 }

@@ -52,8 +52,9 @@ float lastFrame = 0.0f;
 
 // lighting
 glm::vec3 lightPos = glm::vec3(0.0f, 10.0f, 0.0f);
-glm::vec3 dirPos = glm::vec3(-40.0f, 10.0f, -40.0f);
-float heightScale = 0.001;
+//glm::vec3 dirPos = glm::vec3(-40.0f, 10.0f, -40.0f);
+glm::vec3 dirPos = glm::vec3(60, 20, 60);
+float heightScale = 0.1;
 
 int main() {
     // glfw: initialize and configure
@@ -508,8 +509,8 @@ int main() {
         // if you wish to see how the constant changing of the light position
         // affects the lighting on objects
 
-//        lightPos.x = 5*sin(currentFrame)+1;
-//        lightPos.z = 5*cos(currentFrame)+1;
+        lightPos.x = 5*sin(currentFrame)+1;
+        lightPos.z = 5*cos(currentFrame)+1;
 
         processInput(window);
 
@@ -854,29 +855,66 @@ int main() {
 
         // Book with parallax mapping
 
-        bookShader.use();
-        bookShader.setMat4("projection", projection);
-        bookShader.setMat4("view", view);
-        bookShader.setVec3("lightPos", lightPos);
-        bookShader.setVec3("viewPos", lightPos);
-
-        for (int i = 0; i < book.meshes[0].textures.size(); i++) {
+        // TODO: prebaci na parallax occlusion metod
+        for (int i = 0; i < (int)book.meshes[0].textures.size(); i++) {
             bookShader.setInt("material.texture_height1", book.meshes[0].textures.size());
             glActiveTexture(GL_TEXTURE0 + book.meshes[0].textures.size());
             glBindTexture(GL_TEXTURE_2D, heightMap);
             bookShader.setFloat("heightScale", heightScale);
         }
 
-        // TODO: Bolja pozicija
-        glm::vec3 positions[2] = {
-                glm::vec3(0.0f, 3.0f, 0.0f),
-                glm::vec3(3.0f, 3.0f, 0.0f)
+        bookShader.use();
+        bookShader.setInt("flashLight", flashLight);
+        bookShader.setMat4("projection", projection);
+        bookShader.setMat4("view", view);
+        bookShader.setVec3("lightPos", lightPos);
+        bookShader.setVec3("lightDir", dirPos);
+        bookShader.setVec3("viewPos", lightPos);
+        bookShader.setFloat("material.shininess", 32.0f);
+
+        bookShader.setVec3("dirLight.direction", glm::vec3(dirPos));
+        bookShader.setVec3("dirLight.ambient", glm::vec3(0.1));
+        bookShader.setVec3("dirLight.diffuse", 0.2f, 0.2f, 0.2f);
+        bookShader.setVec3("dirLight.specular", glm::vec3(0.1f));
+
+        bookShader.setVec3("pointLight.position", lightPos);
+        bookShader.setVec3("pointLight.ambient", glm::vec3(0.1f));
+        bookShader.setVec3("pointLight.diffuse", 1.0f, 1.0f, 1.0f);
+        bookShader.setVec3("pointLight.specular", glm::vec3(0.1));
+        bookShader.setFloat("pointLight.constant", 1.0f);
+        bookShader.setFloat("pointLight.linear", 0.007f);
+        bookShader.setFloat("pointLight.quadratic", 0.0002f);
+
+        // TODO: sredi spotlight. Posalji camera.Position i camera.Front u vertex shader i prebaci ih u tangenti sistem.
+        bookShader.setVec3("spotLight.position", camera.Position);
+        bookShader.setVec3("spotLight.direction", camera.Front);
+        bookShader.setVec3("spotLight.ambient", glm::vec3(0.1f));
+        bookShader.setVec3("spotLight.diffuse", 1.0f, 1.0f, 1.0f);
+        bookShader.setVec3("spotLight.specular", glm::vec3(1.2f));
+        bookShader.setFloat("spotLight.constant", 1.0f);
+        bookShader.setFloat("spotLight.linear", 0.007f);
+        bookShader.setFloat("spotLight.quadratic", 0.0002f);
+        bookShader.setFloat("spotLight.cutOff", glm::cos(glm::radians(12.5f)));
+        bookShader.setFloat("spotLight.outerCutOff", glm::cos(glm::radians(15.0f)));
+
+        std::vector<std::pair<glm::vec3, float>> positions{
+                make_pair(glm::vec3(-3.0f, 0.5f, -8.0f), glm::radians(90.0f)),
+                make_pair(glm::vec3(-2.8f, 1.0f, -8.0f), glm::radians(90.0f)),
+                make_pair(glm::vec3(-3.0f, 1.5f, -4.5f), glm::radians(-90.0f)),
+                make_pair(glm::vec3(-1.0f, 0.0f, -8.0f), glm::radians(+90.0f))
         };
 
-        for (int i = 0; i < 2; i++) {
+        int n = positions.size();
+        for (int i = 0; i < n; i++) {
             model = glm::mat4(1.0f);
-            model = glm::translate(model, positions[i]);
-            model = glm::scale(model, glm::vec3(0.5f));
+            model = glm::translate(model, positions[i].first);
+            if (i == n-1) {
+                model = glm::rotate(model, positions[i].second, glm::vec3(0.0, 1.0, 0.0));
+                model = glm::rotate(model, glm::radians(-20.0f), glm::vec3(1.0, 0.0, 0.0));
+            }
+            else
+                model = glm::rotate(model, positions[i].second, glm::vec3(1.0, 0.0, 0.0));
+            model = glm::scale(model, glm::vec3(0.8f));
             bookShader.setMat4("model", model);
             book.Draw(bookShader);
         }

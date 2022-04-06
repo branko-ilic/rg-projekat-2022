@@ -23,7 +23,7 @@ Iz grupe A:
 - [x] Cubemaps (Branko)
 
 Iz grupe B:
-- [ ] Normal/Parallax Mapping (Radovan)
+- [x] Normal-plant/Parallax-books Mapping (Radovan)
 - [x] HDR/Bloom (Branko)
 
 ## Assets:
@@ -33,6 +33,7 @@ Iz grupe B:
 * [Teksture za skybox](https://www.flickr.com/photos/gadl/393474308/)
 * [Model biljke](https://sketchfab.com/3d-models/azalea-fae7c1ccc8d9405f859e4920787c1c08)
 * [Sfera](https://sketchfab.com/3d-models/xxr-sphere-121319-7928b72a80d341cdae1d0b7cb09988bd)
+* [Book](https://sketchfab.com/3d-models/the-hobbit-95198e3460b14c4db3749eb888a869b3)
 
 
 ## Autori

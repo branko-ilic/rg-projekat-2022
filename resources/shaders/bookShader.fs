@@ -10,6 +10,11 @@ in VS_OUT {
     vec3 TangentLightDir;
 } fs_in;
 
+in SP_OUT {
+    vec3 TangentSpotPos;
+    vec3 TangentSpotDir;
+} sp_in;
+
 struct Material {
     sampler2D texture_diffuse1;
     sampler2D texture_specular1;
@@ -145,7 +150,9 @@ vec3 CalcDirLight(DirLight light, vec3 normal, vec3 viewDir, vec3 color, vec2 te
 
 vec3 CalcSpotLight(SpotLight light, vec3 normal, vec3 fragPos, vec3 viewDir, vec3 color, vec2 texCoords)
 {
-    vec3 lightDir = normalize(fs_in.TangentLightPos - fragPos);
+    //vec3 lightDir = normalize(fs_in.TangentLightPos - fragPos);
+    vec3 lightDir = normalize(sp_in.TangentSpotPos - fragPos);
+
     // diffuse shading
     float diff = max(dot(normal, lightDir), 0.0);
     // specular shading
@@ -154,10 +161,11 @@ vec3 CalcSpotLight(SpotLight light, vec3 normal, vec3 fragPos, vec3 viewDir, vec
 
     float spec = pow(max(dot(normal, halfwayDir), 0.0), material.shininess);
 
-    float distance = length(light.position - fragPos);
+//     float distance = length(light.position - fragPos);
+    float distance = length(sp_in.TangentSpotPos - fragPos);
     float attenuation = 1.0 / (light.constant + light.linear * distance + light.quadratic * (distance * distance));
 
-    float theta = dot(lightDir, normalize(-light.direction));
+    float theta = dot(lightDir, normalize(-sp_in.TangentSpotDir));
     float epsilon = light.cutOff - light.outerCutOff;
     float intensity = clamp((theta - light.outerCutOff) / epsilon, 0.0, 1.0);
 

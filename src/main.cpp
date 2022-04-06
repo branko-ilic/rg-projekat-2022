@@ -822,6 +822,9 @@ int main() {
         plantShader.setVec3("lightDir", dirPos);
         plantShader.setInt("flashLight", flashLight);
         plantShader.setFloat("material.shininess", 18.0f);
+        // Salju se vertex shader-u
+        plantShader.setVec3("spotPosition", camera.Position);
+        plantShader.setVec3("spotDirection", camera.Front);
 
         plantShader.setVec3("dirLight.direction", glm::vec3(dirPos));
         plantShader.setVec3("dirLight.ambient", 0.1f, 0.1f, 0.1f);
@@ -836,6 +839,7 @@ int main() {
         plantShader.setFloat("pointLight.linear", 0.007f);
         plantShader.setFloat("pointLight.quadratic", 0.0002f);
 
+        // TODO: Da li ostaviti ovo (camera.*)?
         plantShader.setVec3("spotLight.position", camera.Position);
         plantShader.setVec3("spotLight.direction", camera.Front);
         plantShader.setVec3("spotLight.ambient", glm::vec3(0.1f));
@@ -871,6 +875,9 @@ int main() {
         bookShader.setVec3("lightDir", dirPos);
         bookShader.setVec3("viewPos", lightPos);
         bookShader.setFloat("material.shininess", 32.0f);
+        // Salju se vertex shader-u
+        bookShader.setVec3("spotPosition", camera.Position);
+        bookShader.setVec3("spotDirection", camera.Front);
 
         bookShader.setVec3("dirLight.direction", glm::vec3(dirPos));
         bookShader.setVec3("dirLight.ambient", glm::vec3(0.1));
@@ -885,7 +892,7 @@ int main() {
         bookShader.setFloat("pointLight.linear", 0.007f);
         bookShader.setFloat("pointLight.quadratic", 0.0002f);
 
-        // TODO: sredi spotlight. Posalji camera.Position i camera.Front u vertex shader i prebaci ih u tangenti sistem.
+        // TODO: Da li ostaviti ovo (camera.*)?
         bookShader.setVec3("spotLight.position", camera.Position);
         bookShader.setVec3("spotLight.direction", camera.Front);
         bookShader.setVec3("spotLight.ambient", glm::vec3(0.1f));
@@ -901,7 +908,7 @@ int main() {
                 make_pair(glm::vec3(-3.0f, 0.5f, -8.0f), glm::radians(90.0f)),
                 make_pair(glm::vec3(-2.8f, 1.0f, -8.0f), glm::radians(90.0f)),
                 make_pair(glm::vec3(-3.0f, 1.5f, -4.5f), glm::radians(-90.0f)),
-                make_pair(glm::vec3(-1.0f, 0.0f, -8.0f), glm::radians(+90.0f))
+                make_pair(glm::vec3(-1.0f, 0.2f, -8.0f), glm::radians(+90.0f))
         };
 
         int n = positions.size();
@@ -910,7 +917,7 @@ int main() {
             model = glm::translate(model, positions[i].first);
             if (i == n-1) {
                 model = glm::rotate(model, positions[i].second, glm::vec3(0.0, 1.0, 0.0));
-                model = glm::rotate(model, glm::radians(-20.0f), glm::vec3(1.0, 0.0, 0.0));
+                model = glm::rotate(model, glm::radians(-23.0f), glm::vec3(1.0, 0.0, 0.0));
             }
             else
                 model = glm::rotate(model, positions[i].second, glm::vec3(1.0, 0.0, 0.0));

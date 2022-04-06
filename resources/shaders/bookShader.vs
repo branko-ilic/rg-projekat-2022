@@ -14,6 +14,12 @@ out VS_OUT {
     vec3 TangentLightDir;
 } vs_out;
 
+// for spotlight
+out SP_OUT {
+    vec3 TangentSpotPos;
+    vec3 TangentSpotDir;
+} sp_out;
+
 uniform mat4 projection;
 uniform mat4 view;
 uniform mat4 model;
@@ -21,6 +27,9 @@ uniform mat4 model;
 uniform vec3 lightPos;
 uniform vec3 viewPos;
 uniform vec3 lightDir;
+
+uniform vec3 spotPosition;
+uniform vec3 spotDirection;
 
 void main()
 {
@@ -36,6 +45,9 @@ void main()
     vs_out.TangentViewPos  = TBN * viewPos;
     vs_out.TangentFragPos  = TBN * vs_out.FragPos;
     vs_out.TangentLightDir = TBN * lightDir;
+
+    sp_out.TangentSpotPos    = TBN * spotPosition;
+    sp_out.TangentSpotDir    = TBN * spotDirection;
 
     gl_Position      = projection * view * model * vec4(aPos, 1.0);
 }

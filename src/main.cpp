@@ -805,8 +805,8 @@ int main() {
         objectShader.setMat4("projection", projection);
         objectShader.setMat4("view", view);
         model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(8.0f, -1.6f, -7.5f));
-        model = glm::scale(model, glm::vec3(2.8f));
+        model = glm::translate(model, glm::vec3(9.0f, -1.6f, -9.0f));
+        model = glm::scale(model, glm::vec3(3.5f));
         objectShader.setMat4("model", model);
         sphere.Draw(objectShader);
 
@@ -821,6 +821,7 @@ int main() {
         plantShader.setVec3("lightDir", dirPos);
         plantShader.setInt("flashLight", flashLight);
         plantShader.setFloat("material.shininess", 18.0f);
+
         // Salju se vertex shader-u
         plantShader.setVec3("spotPosition", camera.Position);
         plantShader.setVec3("spotDirection", camera.Front);
@@ -851,7 +852,7 @@ int main() {
         plantShader.setFloat("spotLight.outerCutOff", glm::cos(glm::radians(15.0f)));
 
         model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(4.0f, 0.0f, -4.0f));
+        model = glm::translate(model, glm::vec3(-5.0f, 0.0f, -7.5f));
         model = glm::scale(model, glm::vec3(0.3f));
         plantShader.setMat4("model", model);
         plant.Draw(plantShader);
@@ -874,6 +875,7 @@ int main() {
         bookShader.setVec3("lightDir", dirPos);
         bookShader.setVec3("viewPos", lightPos);
         bookShader.setFloat("material.shininess", 32.0f);
+
         // Salju se vertex shader-u
         bookShader.setVec3("spotPosition", camera.Position);
         bookShader.setVec3("spotDirection", camera.Front);
@@ -904,10 +906,10 @@ int main() {
         bookShader.setFloat("spotLight.outerCutOff", glm::cos(glm::radians(15.0f)));
 
         std::vector<std::pair<glm::vec3, float>> positions{
-                make_pair(glm::vec3(-3.0f, 0.5f, -8.0f), glm::radians(90.0f)),
-                make_pair(glm::vec3(-2.8f, 1.0f, -8.0f), glm::radians(90.0f)),
-                make_pair(glm::vec3(-3.0f, 1.5f, -4.5f), glm::radians(-90.0f)),
-                make_pair(glm::vec3(-1.0f, 0.2f, -8.0f), glm::radians(+90.0f))
+                make_pair(glm::vec3(-9.0f, 0.5f, -6.0f), glm::radians(90.0f)),
+                make_pair(glm::vec3(-8.8f, 1.0f, -6.0f), glm::radians(90.0f)),
+                make_pair(glm::vec3(-9.0f, 1.5f, -3.0f), glm::radians(-90.0f)),
+                make_pair(glm::vec3(-7.0f, 0.2f, -4.5f), glm::radians(90.0f))
         };
 
         int n = positions.size();

@@ -34,6 +34,9 @@ Group B:
 * [Plant](https://sketchfab.com/3d-models/azalea-fae7c1ccc8d9405f859e4920787c1c08)
 * [Sphere](https://sketchfab.com/3d-models/xxr-sphere-121319-7928b72a80d341cdae1d0b7cb09988bd)
 * [Book](https://sketchfab.com/3d-models/the-hobbit-95198e3460b14c4db3749eb888a869b3)
+* Program for reconstructing a height map from a normal map: [debump.c](https://stannum.io/blog/0IwyJ-)
+  * `gcc ... -lm -lfftw3f`
+  * `./debump deconv -ny <input> <output>`
 
 
 ## Authors

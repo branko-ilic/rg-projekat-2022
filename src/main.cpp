@@ -52,7 +52,6 @@ float lastFrame = 0.0f;
 
 // lighting
 glm::vec3 lightPos = glm::vec3(0.0f, 10.0f, 0.0f);
-//glm::vec3 dirPos = glm::vec3(-40.0f, 10.0f, -40.0f);
 glm::vec3 dirPos = glm::vec3(60, 20, 60);
 float heightScale = 0.1;
 
@@ -66,7 +65,7 @@ int main() {
 
     // glfw window creation
     // --------------------
-    GLFWwindow *window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "LearnOpenGL", NULL, NULL);
+    GLFWwindow *window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "Book shop", NULL, NULL);
     if (window == NULL) {
         std::cout << "Failed to create GLFW window" << std::endl;
         glfwTerminate();
@@ -93,10 +92,10 @@ int main() {
     glEnable(GL_CULL_FACE);
 
     Shader floorShader("resources/shaders/uniformLightShader.vs", "resources/shaders/uniformLightShader.fs");
-    Shader blendingShader("resources/shaders/blendingShader.vs", "resources/shaders/blendingShader.fs");
     Shader pyramidShader("resources/shaders/uniformLightShader.vs", "resources/shaders/uniformLightShader.fs");
-    Shader objectShader("resources/shaders/objectShader.vs", "resources/shaders/objectShader.fs");
+    Shader objectShader("resources/shaders/uniformLightShader.vs", "resources/shaders/uniformLightShader.fs");
     Shader tableTopCubeShader("resources/shaders/uniformLightShader.vs", "resources/shaders/uniformLightShader.fs");
+    Shader blendingShader("resources/shaders/blendingShader.vs", "resources/shaders/blendingShader.fs");
 
     Shader skyboxShader("resources/shaders/skyboxShader.vs", "resources/shaders/skyboxShader.fs");
     Shader lightCubeShader("resources/shaders/uniformLightShader.vs", "resources/shaders/lightcube.fs");
@@ -509,8 +508,8 @@ int main() {
         // if you wish to see how the constant changing of the light position
         // affects the lighting on objects
 
-        lightPos.x = 5*sin(currentFrame)+1;
-        lightPos.z = 5*cos(currentFrame)+1;
+//        lightPos.x = 5*sin(currentFrame)+1;
+//        lightPos.z = 5*cos(currentFrame)+1;
 
         processInput(window);
 
@@ -768,7 +767,7 @@ int main() {
         glBindVertexArray(tableTopCubeVAO);
         glDrawArrays(GL_TRIANGLES, 0, 36);
 
-        // Model setup.
+        // Models setup.
 
         objectShader.use();
         objectShader.setVec3("viewPos", lightPos);
@@ -806,8 +805,8 @@ int main() {
         objectShader.setMat4("projection", projection);
         objectShader.setMat4("view", view);
         model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(-7.0f, -1.0f, -2.0f));
-        model = glm::scale(model, glm::vec3(1.8f));
+        model = glm::translate(model, glm::vec3(8.0f, -1.6f, -7.5f));
+        model = glm::scale(model, glm::vec3(2.8f));
         objectShader.setMat4("model", model);
         sphere.Draw(objectShader);
 
@@ -852,7 +851,7 @@ int main() {
         plantShader.setFloat("spotLight.outerCutOff", glm::cos(glm::radians(15.0f)));
 
         model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(9.0f, 0.0f, -9.0f));
+        model = glm::translate(model, glm::vec3(4.0f, 0.0f, -4.0f));
         model = glm::scale(model, glm::vec3(0.3f));
         plantShader.setMat4("model", model);
         plant.Draw(plantShader);

@@ -109,7 +109,7 @@ int main() {
     plant.SetShaderTextureNamePrefix("material.");
 
     Shader bookShader("resources/shaders/bookShader.vs", "resources/shaders/bookShader.fs");
-    Model book(FileSystem::getPath("resources/objects/hobbit-book/hobbit_book_SF.obj"));
+    Model book(FileSystem::getPath("resources/objects/hobbit-book/hobbit_book_SF.obj"), true);
     book.SetShaderTextureNamePrefix("material.");
 
     Model sphere(FileSystem::getPath("resources/objects/xxr-sphere/XXR_B_BLOODSTONE_002.obj"), true);

@@ -1,5 +1,8 @@
 # Computer Graphics project
 
+![preview](resources/preview.png)
+[**Demo**](https://drive.google.com/file/d/1wUrY_dGndP7342yxziJBe-qfa7troyVp/view?usp=sharing)
+
 ## Instructions
 1. `git clone https://github.com/Armapillow/rg-projekat-2022`
 2. CLion -> Open -> path/to/my/project_base

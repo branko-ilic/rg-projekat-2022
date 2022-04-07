@@ -496,7 +496,7 @@ int main() {
     screenShader.setInt("screenTexture", 0);
 
     // TODO: Da li moze preko klase Texture2D
-    unsigned int heightMap = loadTexture("resources/objects/hobbit-book/hobbit_height_map.jpg");
+    unsigned int heightMap = loadTexture("resources/objects/hobbit-book/hobbit_book_retopo_height.jpg");
 
     while (!glfwWindowShouldClose(window)) {
         float currentFrame = static_cast<float>(glfwGetTime());
@@ -1079,9 +1079,9 @@ void processInput(GLFWwindow *window) {
         std::cerr << "(" << camera.Position.x << "," << camera.Position.y << "," << camera.Position.z << ")\n";
 
     if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
-        camera.MovementSpeed += 0.5f;
+        camera.MovementSpeed += 1.0f;
     if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
-        camera.MovementSpeed -= 0.5f;
+        camera.MovementSpeed -= 1.0f;
 
     if (glfwGetKey(window, GLFW_KEY_F1) == GLFW_PRESS)
         glEnable(GL_MULTISAMPLE);

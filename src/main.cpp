@@ -217,6 +217,10 @@ int main() {
             std::cout << "Framebuffer not complete!" << std::endl;
     }
 
+    floorShader.use();
+    floorShader.setInt("diffuseTexture", 0);
+    tableTopCubeShader.use();
+    tableTopCubeShader.setInt("diffuseTexture", 0);
     pyramidShader.use();
     pyramidShader.setInt("diffuseTexture", 0);
     shaderBlur.use();

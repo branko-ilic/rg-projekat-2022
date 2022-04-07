@@ -14,7 +14,7 @@
 11. Switch the Bloom on/off  `SPACE`
 12. Increase the exposure of the bloom `E`, decrease the exposure `Q`
 
-* Unzip [objects.zip](https://drive.google.com/file/d/1qHIkjWMSXUBQ2YnIVI8RuIWmUwzyREgg/view?usp=sharing) into the `resources/` directory.
+* Unzip [objects.zip](https://drive.google.com/file/d/1E5Zn9Mm5aG44ah1jI6Ri56nznZUvHucG/view?usp=sharing) into the `resources/` directory.
 
 ## Additional implemented sections
 
